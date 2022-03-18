@@ -1,29 +1,30 @@
     \chapter{Introduction}
-    \addcontentsline{toc}{chapter}{Introduction}
-    \setcounter{chapter}{1}
     %research goals
     %research motivation
     %thesis outline
-    Colorectal cancer is one of the leading causes of cancer related deaths, causing approximately 900 thousand deaths worldwide per year (cite). Early detection thereof is as a consequence of significant importance. Polyps are often an early warning-sign of developing tumour, and early detection thereof can as a result significantly reduce fatality rates. Polyps are, however, often missed during colonoscopies, owing to the significant variability in the shapes and sizes of polyps, as well as the high degrees of similarity to surrounding tissue. Automatic segmentation of polyps via deep learning has the potential to significantly increase the likelihood of early detection and thus effective treatment. 
+    Colorectal cancer is one of the leading causes of cancer related deaths, causing approximately 900 thousand deaths worldwide per year \cite{colorectal_cancer}. Early detection and consequent resection of polyps, a precursor to colorectal cancer, is as such of significant importance towards reducing the incidence and mortality rates thereof. Polyps are, however, often missed during colonoscopies, owing to the significant variability in the shapes and sizes of polyps, as well as the high degrees of similarity to surrounding tissue \cite{missrate1, missrate2}. 
     
-    Though there has been a wealth of work dedicated to developing such systems, with promising results, recent work in the field has highlighted that deep neural networks (DNNs) readily fail to maintain performance when deployed outside of lab-conditions. This is known as generalization failure, and has been shown to be ubiquitous across practically every application of deep learning. The deep learning community is still in the early stages of understanding exactly how and why such generalization failure is so ubiquitous. Consqeuently, developing methods and frameworks to combat generalisation remains an open problem. 
-
-    This thesis attempts to address this problem by synthesizing and systematizing recent work in generalizability, generalizable methods, and recent attempts at inducing generalizability in polyp segmentation as presented in the EndoCV2021 challenge. A novel approach to increasing generalizability, based on recent work in the field, is also presented. The approach, named \alg,  works by employing specific augmentation strategies to produce a so-called model of natural variation, intended to encapsulate the variability one might expect across different datasets and hence assist in inducing invariances in the model. This is acheived through the use of a specifically tailored loss, referred to as consistency loss, which punishes inconsistent predictions across the augmented and unaugmented folds irrespective of the correctness of the predictions. This endows the pipeline with the ability to more readily infer causally viable inductive biases by explicitly forcing the model to be robust to any combination of the aforementioned transformations. 
+    Automatic segmentation of polyps via deep learning has as a consequence been identified as a promising candidate for reducing polyp miss-rates by serving as an auxiliary detection method during screening. There has as a result been a wealth of work dedicated to developing such systems, with some studies reporting that AI-assisted detection can increase detection rates by significant margins \cite{polyp-success-story}.  
     
-    (...)    
-   
-%      What is the use of a Nifty Gadget?
-        %Segmentation of polyps; importance
-%      What is the problem?
-        % Generalizability failure
-%      How can it be solved?
-        % Little research
-%      What are the previous approaches?
-        % ???
-%      What is your approach?
+    %generalizability
+    Recent work in the field has, however, highlighted that deep neural networks \glspl{dnn} readily fail to maintain sufficient performance when deployed outside of lab-conditions \cite{damour2020underspecification, shortcut_learning, endocv2021}. This is known as generalization failure, and has been shown to be ubiquitous across practically every application of deep learning. Understanding exactly how and why this is the case and understanding how is a subject of ongoing study, and there has as a result been limited work explicitly developing methods to reduce the generalizability gap. To address this, the EndoCV2021 challange was organized, wherein deep-learning based polyp segmentation and detection models were evaluated on unseen, \gls{ood} datasets, consisting of polyp-images collected from a separate center than the training sets. Though several teams made good progress towards increasing generalizability, the proceedings still highlighted that every submitted model exhibited significant performance reductions on the unseen dataset.
 
-%      Why do it this way?
-%      What are your results?
-%      Why is this better?
-%      Is this a new approach?
-%      Why haven't anyone done it before?
+    %My methods
+    This thesis aims to build upon the EndoCV2021 findings and related works that have been published in the field of generalizable deep learning in the last few years. Generalizability theory is considered from first principles, and the various studies on the matter synthesized in order to create a framework for understanding and addressing the various issues that contribute to generalization failure. This is in turn used to inform the development of a novel pipeline, consisting of the following components:
+    \begin{itemize}
+        \item A series of metrics based on a data augmentation model, which aims to provide a surrogate for generalizability when \gls{ood} data is unavailable. This metric can then used as an alternative to in-distribution validation and as a loss-function. 
+        \item A custom augmentation strategy, leveraging both conventional augmentations and a \gls{gan}. 
+        \item A training procedure, based on this new metric and augmentation strategy
+        \item A double-decoder model, wherein one decoder performs image reconstruciton, intended to facilitate the learning of more generalizable features
+        \item Several forms of ensembles, wherein multiple trained models are used to establish a consensus about the final segmentation
+    \end{itemize}
+    
+
+    To sufficiently evaluate the impact of the respective components, an ablation study was conducted - i.e, each of the components were tested individually, and in conjunction with one another should there be some dynamic between some number of them conducive to increased generalization. This way, the thesis also contributes a rigorous analysis of the impact of the types of methods used to increase generalizability in the literature, which at the time of writing this thesis has not yet been performed. Though this analysis is by no means complete, it provides a general overview of the techniques used in the literature, their impact on generalization, and theoretical analyses of why they perform the way they do.
+    
+    The results indicate that data-augmentation increased generalizabiltiy more than any other method tested in this hesis. The impact of the new loss-function and validation procedure was shown to have statistically insignificant impact, and can be mathematically proven to be equivalent to conventional data augmentation up to choice of hyperparameters. The new metrics were, however, highly correlated with \gls{ood} performance, and may nevertheless be helpful for benchmarking generalizability when \gls{ood} data is unavailable. Finally, ensembles were also shown to have a significant positive impact, though this was largely dependent on (...)  
+    %Analysis
+    (Analysis)
+
+    % Organization
+    The thesis will be organized as follows: the next chapter will cover all relevant background knowledge. This includes a brief introduction to polyps and their role in colorectal cancer, deep learning, and segmentation, and then an overview and synthesis of related works on generalizability and generalizable methods for deep learning. The subsequent chapter will then cover the contributions as outlined above, their basis with respect to the presented theory, and finally how they were implemented. Chapter \ref{experiments} will then describe the experimental procedures and briefly discuss the results from the individual experiments. Chapter \ref{analysis} will then analyze these findings in further detail, including some surface-level mathematical analysis. Finally, the implications of these findings will be discussed in chapter \ref{discussion} along with plans and suggestions for further work on the topic. 

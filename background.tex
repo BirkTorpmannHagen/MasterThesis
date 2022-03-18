@@ -1,28 +1,97 @@
 % !TeX spellcheck = en_UK
 \chapter{Background} \label{background}
-%TODOS: 
-%  - Add sections on (?):
-%     o Gan-Inpainting
+%TODOS: '
+%  - Add sections on:
+%     o DL and segmentation basics
+%  - Consider adding sections on:
+%     o Gan-Inpainting and distributional modelling
 %     o Loss functions
 % Problem: describing gan-inpainting and loss functions suddenly without first explaining why they matter in the context of generalizability is unconvincing IMO. Describe in methods instead? Otherwise, find ways to connect to generalizability
 % 
-\section{Colorectal Polyps, Medical Imaging, and Deep Learning}
 
-	Polyps are small growths found in and around the inner lining of the large intestine. These polyps, also referred to as adenomas, can in time develop into cancerous tumours, or carcinomas, in a process known as the adenoma-carcinoma sequence~\cite{ACS}. Though the majority of polyps do not undergo this process, identifying polyps nonetheless constitutes an important step towards preventing colorectal cancer. Indeed, resection of these polyps has been shown to reduce the incidence of colorectal cancer by a significant margin~\cite{resection}. 
-	
-	Though colorectal cancer remains as one of the leading causes of cancer-related death worldwide ~\cite{colorectal_cancer}, mortality rates have in recent years declined in large part to the increased use of screening colonoscopy and subsequent preemptive treatment ~\cite{screening}. Polyps are by nature somewhat difficult to detect, however, and are routinely missed by clinicians, with miss rates reportedly ranging upwards of $27\%$ for diminutive (<2.5mm) polyps ~\cite{missrate1, missrate2}.
-	%TODO add example of polyp here?
-	Reducing this miss rate has the potential to further reduce the incidence of colorectal cancer. As a result, there has been a significant body of work dedicated to developing systems and techniques to aid in more accurate screening. Certain image-processing techniques, namely I-SCAN, have for instance been shown to reduce miss-rates by up to $50\%$ ~\cite{i-scan}. Similarly, the use of narrow-band imaging, wherein light of specific wavelengths specifically designed to highlight the textural differences between the polyps and the surrounding tissue, have been shown to reduce miss rates by 26\% ~\cite{nbi}. 
-	
-	These systems do, however, require specialized equipment, training and expertise to effectively employ. Thus, automatic polyp segmentation using \glspl{dnn}, and in particular convolutional neural networks (CNNs), has also been identified as a possible auxiliary detection method. Such CNN-aided endoscopy requires minimal training time on the part of the clinician, no additional equipment, and has been shown to increase detection rates by 10\% when deployed in a clinical setting ~\cite{polyp-success-story}. 
 
-	This has spurred on a large body of research dedicated to improving the performance and expanding the capabilities of deep-learning based systems for polyp detection and segmentation. Several challenges been also held, namely the Endotect Challenge ~\cite{endotect}, EndoCV2020 ~\cite{endocv2020} and EndoCV2021 ~\cite{endocv2021}.
+Polyps are small growths found in and around the inner lining of the large intestine. These polyps, also referred to as adenomas, can in time develop into cancerous tumours, or carcinomas, in a process known as the adenoma-carcinoma sequence~\cite{ACS}. Though the majority of polyps do not undergo this process, identifying polyps nonetheless constitutes an important step towards preventing colorectal cancer. Indeed, resection of these polyps has been shown to reduce the incidence of colorectal cancer by a significant margin~\cite{resection}. 
+
+Though colorectal cancer remains as one of the leading causes of cancer-related death worldwide ~\cite{colorectal_cancer}, mortality rates have in recent years declined in large part to the increased use of screening colonoscopy and subsequent preemptive treatment ~\cite{screening}. Polyps are by nature somewhat difficult to detect, however, and are routinely missed by clinicians, with miss rates reportedly ranging upwards of $27\%$ for diminutive (<2.5mm) polyps ~\cite{missrate1, missrate2}.
+\begin{figure}
+    \centering
+    \includegraphics{example-image-a}
+    \caption{Example of a colorectal polyp. The polyp is outlined in white.}
+    \label{fig:polyp}
+\end{figure}
+Reducing this miss rate has the potential to further reduce the incidence of colorectal cancer. As a result, there has been a significant body of work dedicated to developing systems and techniques to aid in more accurate screening. Certain image-processing techniques, namely I-SCAN, have for instance been shown to reduce miss-rates by up to $50\%$ ~\cite{i-scan}. Similarly, the use of narrow-band imaging, wherein light of specific wavelengths specifically designed to highlight the textural differences between the polyps and the surrounding tissue, have been shown to reduce miss rates by 26\% ~\cite{nbi}. 
+
+These systems do, however, require specialized equipment, training and expertise to effectively employ. Thus, automatic polyp detection using \glspl{dnn}, and in particular \glspl{cnn}, has also been identified as a possible ancilliary screening method. This requires minimal training time on the part of the clinician, no additional equipment, and has been shown to increase detection rates by 10\% when deployed in a clinical setting ~\cite{polyp-success-story}. 
+
+This has spurred on a large body of research dedicated to improving the performance and expanding the capabilities of deep-learning based systems for polyp detection and segmentation. Several challenges been also held, namely the Endotect Challenge ~\cite{endotect}, EndoCV2020 ~\cite{endocv2020} and EndoCV2021 ~\cite{endocv2021}.
+
+There are, however, still several hurdles to overcome; recent research has shown that even state of the art deep-learning pipelines are prone to generalization failure when deployed in practical settings, particularly when exposed to distributional shifts such as changes in demographics, imaging equipment, noise, and more despite exhibiting high performance on hold-out sets ~\cite{retinopathy, damour2020underspecification, pneumonia, shortcut_learning}. This was further highlighted in the EndoCV2021 challenge, wherein submissions were evaluated on a hidden dataset collected from a different hospital than the training data. Though many of the submissions exhibited increased generalizability when compared to baseline models, significant performance gaps were nonetheless present, highlighting that generalization failure remains an open and highly challenging problem~\cite{endocv2021}. 
+
+Understanding how and why such generalization failure occurs and developing methods to counteract it is a subject of ongoing study. This chapter will attempt to summarize and synthesize recent findings in the field. It will first cover the necessary understanding of deep learning and segmentation, before moving on to a survey over instances of generalization failure both in systems dedicated to polyp-segmentation and other applications of deep learning. These failures will then be analyzed through the lens of generalizability theory, starting from the theoretical fundamentals underpinning deep learning - namely \glsfirst{erm} - and incorporating recent analyses in the literature pertaining to generalizability failure and its origins. Finally, recent work on generalizable methods will be summarized, and analyzed with respect to the aforementioned theory. 
 	
-	There are, however, still several hurdles to overcome; recent research has shown that even state of the art deep-learning pipelines are prone to generalization failure when deployed in practical settings, particularly when exposed to distributional shifts such as changes in demographics, imaging equipment, noise, and more despite exhibiting high performance on hold-out sets ~\cite{retinopathy, damour2020underspecification, pneumonia, shortcut_learning}. This was further highlighted in the EndoCV2021 challenge, wherein submissions were evaluated on a hidden dataset collected from a different hospital than the training data. The results from this challenge demonstrated the pervasiveness of generalization failure, with every submitted model exhibiting significant performance reductions when evaluated on the hidden dataset ~\cite{endocv2021}. 
-	
-	Naturally, automatic segmentation systems are rendered practically useless should they fail to perform sufficiently outside the very carefully controlled conditions within which typical deep learning models are developed. Increasing the generalizability of the deep learning pipeline is as a result of significant interest. 
+\section{Deep Learning}
+The past decade or so has seen a revolution in Artificial Intelligence, spearheaded by Deep Learning. This has facilitated significant performance improvements across a wide range of fields - ranging from computer vision - polyp segmentation included - to forecasting stock prices, and from natural language processing used in machine translation to the content recommendation engines used by most social media platforms and even to complex tasks like robot-control and games like Chess and Go. 
+
+
+To fully explain how and why Deep Learning performs so well - and why it sometimes does not - this section will cover the basics of Deep Learning and introduce the concept of the Deep Learning Pipeline. It will also detail the problem of semantic segmentation in the context of polyps, and finally describe how a Deep Learning Pipeline can be adapted to try to solve this problem.
+
+\section{The Deep Learning Pipeline}
+    Deep Learning is a machine learning method, wherein a \glsfirst{dnn} - typically consisting of hundreds of thousands, and even upwards of millions and even hundreds of billions of parameters, learns to identify patterns conducive to approximating the mapping from its input space to its output space. Conceptually, one can consider \glspl{dnn} as general-purpose correlation machines; i.e that they accept some paired input-output data, learn correlations between the inputs and outputs in the data, and then predict according to these correlations at inference-time. Similar to how one can us establish linear relationships by performing linear regression given a linear model and some dataset, \glspl{dnn} are capable of establishing non-linear relationships via Deep Learning and a dataset consisting of input-output pairs. 
+    
+    This is achieved through a process known as training, the objective of which is to adjust the aforementioned parameters such that the model exhibits maximal performance according to some metric. Training a \gls{dnn} is naturally not straight-forward; each parameter corresponds to a dimension in the search space, and searching through millions upon millions or more dimensions in order to find a sufficiently performant parameter configuration is not exactly trivial. Deep Learning systems nevertheless achieve this, through a process known as gradient descent. Fundamentally, this involves minimizing some quantity inversely proportional to whatever performance metric one seeks to maximize by differentiating this quantity with respect to the model parameters, and adjust the parameters in the direction of the gradient. There are, naturally, a number of complicating factors involved in this process, which through nearly a decade of research have been addressed using a number of different techniques culminating in what will be referred to as the Deep Learning Pipeline. The constituent components thereof will be further described in the following paragraphs, and are illustrated in \autoref{fig:pipeline}. 
+    
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.75\linewidth]{illustrations/pipeline.png}
+        \caption{Conventional Deep Learning pipeline}
+        \label{fig:pipeline}
+    \end{figure}
+    
+    \subsection{Architectures and Models}
+        The \gls{dnn} model is, naturally, the central component of the deep learning pipeline. There are several types of \gls{dnn}, typically categorized into one of any number of architectures, including \glspl{rnn}, Transformers, \glspl{mlp}, and \glspl{cnn}. Common to all of these architectures is that they consist of multiple instances of the similar functional blocks, often called layers. A \gls{mlp} consists of layers of perceptrons a \gls{rnn} primarily consists of stacked recurrent units, a transformer primarily consists of multiple scaled dot-product attention layers, and a \gls{cnn} consists primarily of convolutional layers. In computer vision tasks, therein polyp-segmentation, primarily  \glspl{cnn} are used, though other architectural components can and often are used in conjunction therewith.
+        
+        Convolutional layers are, as their name suggests, based on the convolution operator. Convolution lends itself well to image-related tasks, as it assumes positional invariance, and is endowed with the ability to consider context by virtue of the fact that convolutions operate with sliding windows. This is illustrated \autoref{fig:convolution}.
+        \begin{figure}
+            \centering
+            \includegraphics{example-image-a}
+            \caption{Example of Convolution}
+            \label{fig:convolution}
+        \end{figure}
+        
+        In broad strokes, \glspl{cnn} work as follows: the input image or video is usually processed by a series of convolutions, after which the resulting values are non-linear functions - called activation functions - and then finally given to the output layer(s), which process the output of the convolutions in whatever way is appropriate to the given task. 
+        How large of a context that a given network (or layer) considers for a given pixel is referred to as its receptive field. By stacking convolutional layers, one can multiplicatively increase the receptive field of the network. This, in conjunction with injecting non-linearities through so-called activation functions between each convolutional layer, allows \glspl{cnn} to learn highly both highly non-linear and highly context-dependent relationships from the data. 
+        
+        Optimally, each hidden layer in a given network will encode increasingly complex representations of the data. This set of representations is called the latent space of the network. In theory, the deeper the network, the larger the latent space, and therefore the more complex representations can be encoded. This enables deep convolutional networks to significantly outperform computer vision systems developed using more conventional approaches, such as the usage of feature engineering methods in conjunction with random forests, SVMs or other simpler classifiers.
+        
+    \subsection{Training}
+        In order for the model to do anything but output random numbers, it has to be trained. This is, as mentioned, achieved via gradient decent. Gradient descent is an optimization procedure whereby one seeks to minimize a so-called loss-function, which quantifies how wrong the model is when compared to label data. This is done by differentiating the loss function with respect to the model's parameters. The negative gradient then defines the direction in parameter-space which would corresponds to the direction of maximal reduction of this loss. 
+    
+    
+\section{Segmentation}
+    Segmentation is the task of determining the region(s) in image-space that constitute the relevant classification target. For polyp-segmentation, for instance, this involves marking whatever pixels correspond to the polyps in the image. This can be seen in Figure \ref{fig:segmentation}. 
+    \begin{figure}[ht]
+        \centering
+        \includegraphics[width=\linewidth]{example-image-a}
+        \caption{Polyp Segmentation Examples}
+        \label{fig:segmentation}
+    \end{figure}
+    Segmentation is, in effect, pixelwise classification; for every pixel, the model considers the pixel's colour, its surroundings and general context, and decides what class - polyp or not a polyp, in this case - this pixel is likely to correspond to given whatever features the model has learned to associate with it.  
+    
+    \subsubsection{Models}
+    To achieve this, the model needs to take the image as input, process it sufficiently, and output a a segmentation probability mask. This mask, consisting of class-wise probabilities for each pixel, has to have the same resolution as the input image, and a suitable number of channels for however many classes the model is intended to segment. For polyp-segmentation, there is only one class - polyp - and only one output channel is required as a consequence. 
+    
+    How the input is processed is, naturally, of considerable importance, and there are several ways to go about this. There are, by and large two different families of segmentation models, namely encoder-decoder networks and spatial pyramid networks.
+    
+    \subsubsection{Metrics}
+    % Accuracy - why not? The n
+    \subsection{Training}
+    
 
 \section{Generalization Failure in the Wild} \label{case_studies}
+    % I would introduce what is generalization failure and give some brief introduction to this section before staring with direct sub-headings. Then I will discuss sub-heading.
+	
+	Naturally, automatic segmentation systems are rendered practically useless should they fail to perform sufficiently outside the very carefully controlled conditions within which typical deep learning models are developed. Increasing the generalizability of the deep learning pipeline is as a result of significant interest. 
+	
 	\subsection{Generalization Failure in Medical Imaging}
 	Generalization failure is not, of course, unique to the polyp segmentation. Though medical imaging has in recent years proven to be one of the most promising applications of artificial intelligence and deep learning, having the capacity to significantly improve both the accuracy and efficiency of detection, diagnosis, and treatment of a wide variety of diseases ~\cite{dl_medical_imaging}, medical deep learning systems are nonetheless highly prone to generalization failure ~\cite{damour2020underspecification, shortcut_learning}.
 	
@@ -30,14 +99,14 @@
 	 
 	\subsection{Generalization Failure in General}
 	Though generalization failure is perhaps best represented in medical domains, the phenomenon is pervasive in practically every application of deep learning, albeit to varying degrees. It has for instance been shown that CNNs trained on ImageNet, one of the largest and most diverse datasets in the domain of computer vision, are heavily biased towards textural features, and consequently fail when the texture of the input is modified, despite the shape and structure of the relevant object remaining recognizable~\cite{texturebias}. Though this result is based on evaluation on synthetic data, it highlights a key property of deep learning pipelines: namely that they do not necessarily learn features that are causal - in other words, that they are intrinsic to the relevant object - inasmuch as they learn features that are highly correlated - in other words, features that are associated with the object but are not intrinsic to it. Though the texture of cat fur for instance is highly correlated with the "cat" class, it is not the fur that makes the cat. In Figure \ref{cat_elephant}, for instance, it is clear that image (c) should be classified as a cat more than an elephant. Granted, this example is as mentioned fairly synthetic, but a similar situation could arise if the classifier for instance was tested on a black-and-white image of a hairless cat. 
-	\begin{figure}[h]
+	\begin{figure}[ht]
 		\includegraphics[width=\linewidth]{illustrations/cat_elephant.png}
 		\caption{Classifiers trained on ImageNet are biased towards textural features}
 		\label{cat_elephant}
 	\end{figure}
 	
 	This behaviour of considering correlations over causation can also be found in state-of-the-art image captioning systems, for instance Microsoft Azure's computer vision API and NeuralTalk2 ~\cite{electric_sheep}, wherein the model seemingly hallucinates that it sees sheep when evaluated on grassy pastures or hills. Once again, it is of course natural to expect that sheep can be found in these contexts, but it is not these contexts that define what it means to be a sheep. Grassy pastures and sheep are not causally related, only correlated, but deep learning pipelines lack the nuance required to understand this fact. 
-	\begin{figure}[h]
+	\begin{figure}[ht]
 		\includegraphics[width=\linewidth]{illustrations/sheep.jpg}
 		\caption{Deep captioning models hallucinate sheep when presented with contexts highly correlated with sheep. Adapted from ~\cite{electric_sheep}}
 		\label{sheep}
@@ -84,7 +153,7 @@
 
 	\subsection{Realizability and Underfitting}
 		Violations of assumption \ref{underfit} corresponds to a well known and fairly well understood form of generalization failure, namely underfitting. One can however argue that underfitting can be all but discounted as plausible explanation for the pervasiveness of generalization failure observed in modern deep learning pipelines. Underfitting occurs when the model simply lacks the complexity required to encapsulate the patterns necessary to form generalizable interpretations of the data. To give a simple example - consider the problem of trying to fit a linear model to the following dataset: 
-		\begin{figure}[h]
+		\begin{figure}[ht]
 			\includegraphics[width=\linewidth]{illustrations/regression_example.png}
 			\caption{A linear model cannot fit polynomial data}
 			\label{underfit example}
@@ -119,7 +188,7 @@
 		
 	To illustrate, consider the rather pertinent example of training a model exclusively on either white-light or narrowband endoscopy. Assume that there are two datasets, each containing samples depicting identical scenes, with the only difference being that dataset A employs white-light endoscopy, whereas dataset B employs narrowband endoscopy. Ideally, a model trained on either dataset should generate predictors that can generalize to the other, and though one may be optimistic and hope this is the case, this is in no way guaranteed. The causal structure behind the decisions - i.e what exactly makes a polyp a polyp - is never considered at any point in the training process. Instead, the models will simply try to leverage whatever predictive patterns can be found the training data. The model trained on narrowband images may for instance principally consider the textural characteristics of the polyps, which narrowband endoscopy enhances. Conversely, the model trained on white-light images, lacking access to these textural characteristics, may instead consider more colour- or shape-based features. Naturally, if this narrow-band-texture-biased model is deployed in white-light endoscopy, it is not likely to succeed since its principal discriminative features no longer are particularly useful. Similarly, the colour-biased model would fail when deployed in narrowband endoscopy since the colours it once used to distinguish polyps are no longer predictive in narrowband images.  
 
-	\begin{figure}[h]
+	\begin{figure}[ht]
 		\includegraphics[width=\linewidth]{illustrations/narrow_band.jpg}
 		\caption{Narrowband imaging and white-light endoscopy constitutes a distributional shift. Adapted from ~\cite{nbi_img}}
 		\label{imaging_modalities}
@@ -136,7 +205,7 @@
 
 	Shortcut learning and the brittle features it corresponds to have also been identified as one of the key properties that explains the effectiveness and pervasiveness of adversarial attacks ~\cite{adversarial_bugs_features}. Naturally, a generalizable predictor should be robust to such minor perturbations, as the model should not in the first place be learning features that get perturbed to any significant degree by adding such high-frequency, low-amplitude noise. Adversarial attacks simply leverage the high degrees of sensitivity inherent to shortcut features, and construct perturbations according the direction in the search space that corresponds to the principal component of this sensitivity ~\cite{sensitivity}. 
 
-	\begin{figure}[h]
+	\begin{figure}[ht]
 		\includegraphics[width=\linewidth]{illustrations/features.png}
 		\caption{Taxonomy of feature types. Adapted from ~\cite{shortcut_learning}}
 		\label{feature_types}
@@ -154,19 +223,45 @@
 
 	~\cite{bayesian_generalization} provides a probabilistic perspective of this phenomenon. They consider generalizability as a two-dimensional quantity, consisting of the support and inductive biases of a model. The inductive biases are as mentioned the constraints by which the model learns, ranging from model-construction - e.g positional invariance in CNNs - to regularization - e.g dropout, data augmentation, etc - and specific training routines - i.e multitask learning, contrastive representation learning, etc. The support, on the other hand, describes the ability of the model to encode certain decision rules. Ideally, and as is the case in deep learning, support should be maximized, as the model should be able to learn as complicated decision rules as may be required by a given problem. Similarly, and perhaps intuitively, the amount of inductive biases imposed on the model a-priori should also be maximized, as it reduces the probability of learning spurious correlations. 
 
-\section{Related work on generalizable deep learning}
-%TODO add figures from papers here
-To summarize, generalization failure occurs due to the weaknesses inherent to ERM. The features that ERM learn to incorporate are often spurious, and the predictors that leverage them are often returned practically arbitrarily from the pipeline. The approaches that have exhibited the highest degrees of success towards increasing generalization as a consequence tend to address these issues in some way or another. 
+\section{Related work on Generalizable Deep Learning}
 
-One of the most well-studied approaches to increasing generalizability is the use of data augmentation. Data augmentation is typically implemented in deep learning pipelines in order to prevent overfitting, often in conjunction with other regularization methods. Naturally, overfitting also constitutes generalizability failure in its own right, but augmentation has also been shown to have positive effects for out-of-distribution generalization. It has for instance been shown that carefully designing augmentation procedures increases the generalizability of polyp segmentation models ~\cite{polyp_augmentation} and prostate segmentation ~\cite{augmentation_prostate}. There has also been a large body of work dedicated to leveraging recent advances in generative models such as generative adversarial networks (GANs) and variational autoencoders (VaEs) to serve as synthetic data augmentation. These types of approaches have also been shown to increase generalizability in CT segmentation ~\cite{cyclegan} and x-ray based covid detection ~\cite{covid}. Data augmentation facilitates generalization by implicitly imbuing the pipeline with more credible inductive biases, as the empirical risk will be best minimized by leveraging features that are conducive to minimizing risk across both synthetic or otherwise augmented data and unaugmented data. Naturally, the choice of augmentations that are used is an inductive bias in and of itself; by employing random rotations, rotational invariance is presupposed. By employing random cropping, image-space object size invariance is presupposed. By employing additive noise, invariance to additive noise is presupposed, and so on. From an ERM perspective, this can also be thought of as improving the empirical risk estimate; given enough data, all of these invariances may be learned automatically. With a finite and often fairly limited dataset, this may not necessarily be the case simply due to the large number of confounding variables involved. 
 
-Another type of approach involves biasing the pipeline towards learning more structured and causally viable latent representations. This is also somewhat well understood when considered through the lens of regularization: drop-out and weight-decay are often employed in order to reduce overfitting under the assumption that a generalizable predictor should not base its decisions on only a few of the available neurons and that separate neurons should instead encode independent representations of the input. Though there is limited research on the effects of dropout on ood generalization, constraining the latent representations in DNNs has been shown to be effective method to increase generalizability. For polyp-segmentation it has for instance been shown that adding context-based attention layers to multiple blocks in a given network results in state-of-the-art IoU scores for out-of-distribution evaluation on certain datasets ~\cite{uacanet}. Other attention-based approaches have also shown promise in this regard ~\cite{attention_generalizability, reverse_attention}. This permits the model to learn and generate attention maps for its latent representations, thus in theory biasing the model towards learning more a more structured interpretation of the data. 
+
+% To summarize, generalization failure occurs due to the weaknesses inherent to ERM. The features that ERM learn to incorporate are often spurious, and the pipeline can return any number of spurious or non-spurious predictors from identical training procedures up to choice of random seeds. 
+
+% The approaches that have exhibited the highest degrees of success towards increasing generalization as a consequence tend to address these issues in some way or another. 
+
+\subsection{Data-augmentation}
+One of the most well-studied approaches to increasing generalizability is the use of data augmentation. Data augmentation is typically
+implemented in deep learning pipelines in order to prevent overfitting, often in conjunction with other regularization methods. As discussed earlier, overfitting constitutes generalizability failure in its own right, but augmentation has also been shown to have positive effects for out-of-distribution generalization. It has for instance been shown that carefully designing augmentation procedures increases the generalizability of polyp segmentation models ~\cite{polyp_augmentation} and prostate segmentation models ~\cite{augmentation_prostate}. 
+
+
+There has also been a large body of work dedicated to leveraging recent advances in generative models such as \glspl{gan} and \glspl{vae} to serve as synthetic data augmentation. These types of approaches have also been shown to increase generalizability in CT segmentation ~\cite{cyclegan} and x-ray based covid detection ~\cite{covid}. Data augmentation facilitates generalization by implicitly imbuing the pipeline with more credible inductive biases, as the empirical risk will be best minimized by leveraging features that are conducive to minimizing risk across both synthetic or otherwise augmented data and unaugmented data. Naturally, the choice of augmentations that are used is an inductive bias in and of itself; by employing random rotations, rotational invariance is presupposed. By employing random cropping, image-space object size invariance is presupposed. By employing additive noise, invariance to additive noise is presupposed, and so on. From an ERM perspective, this can also be thought of as improving the empirical risk estimate; given enough data, all of these invariances may be learned automatically. With a finite and often fairly limited dataset, this may not necessarily be the case simply due to the large number of confounding variables involved. 
+
+\subsection{Data Filtering}
+
+\subsection{Model Debiasing}
+Another type of approach involves biasing the pipeline towards learning more structured and causally viable latent representations - or, equivalently, de-biasing it from learning spurious correlations. This is also somewhat well understood when considered through the lens of regularization: drop-out and weight-decay are often employed in order to reduce overfitting under the assumption that a generalizable predictor should not base its decisions on only a few of the available weights and that separate components in the networks should instead encode independent representations of the input. Though there is limited research on the effects of conventional regulariszation methods on \gls{ood} generalization specifically, constraining the latent representations in DNNs has been shown to be effective method to increase generalizability.
+
+For polyp-segmentation it has for instance been shown that adding context-based attention layers to multiple blocks in a given network results in a significant increase to \gls{ood} performance ~\cite{uacanet}. Other attention-based approaches have also shown promise in this regard ~\cite{attention_generalizability, reverse_attention}. This permits the model to learn and generate attention maps for its latent representations, thus in theory biasing the model towards learning more a more structured interpretation of the data. 
 
 Multi-task and/or multistage learning has also been leveraged to this end. By jointly optimizing for multiple tasks/subtasks, the model can be biased towards learning features that describe the input data well independent of their performance on any one of the relevant tasks. For polyp-segmentation, for instance, it has been shown that adding image reconstruction as an auxiliary task ~\cite{ddanet} or decoupling the segmentation task into a coarse segmentation and refinement stage ~\cite{doubleencdec} increases generalizability. 
 
 More closely supervised methods, wherein certain inductive biases have been explicitly introduced to the pipeline, have also been shown to have some promise. One paper for instance reported an increased robustness to image perturbations after adding a custom filter bank designed to emulate the primary visual cortex of primates to the front of the CNN ~\cite{visual_cortex}. Another reported that models trained on imagenet exhibited significantly higher robustness when explicitly biased towards shape-based features ~\cite{texturebias}. 
-	
+
+\subsection{Novel Learning Paradigms}
 These approaches all provide workarounds to flaws with ERM, typically to limited practical effect. Consequently, a growing body of work has instead been investigating the idea of foregoing ERM altogether in favour of developing alternative training paradigms. In so-called Invariant Risk Minimization~\cite{IRM}, for instance, the model trains to ignore spurious correlations by optimizing for predictors that exhibit stable performance across multiple training environments. A similar approach, namely model-based robust deep learning ~\cite{modelbased}, employs a similar idea in conjunction with distributional modelling. The model is trained such that it is robust to perturbations as generated by a so-called model of natural variation. If this model for instance describes the function mapping one training environment to another, this will then optimize for predictors that are invariant to the distributional shift this function corresponds to. 
 
-Finally, Bayesian learning has also been shown to improve generalization. In particular, ensemble-based networks - which mathematically can be considered an approximation of Bayesian marginalization ~\cite{bayesian_case,bayesian_generalization} - have demonstrated high degrees of generalizability for polyp-segmentation ~\cite{divergentnets,endoensemble}. Since deep learning pipelines are typically underspecified, one can consider an ensemble of predictors to be a sampling of the distribution over parameters given training data. These predictors are of course unlikely to have learned identical representations, and consequently whatever spurious correlations inferred by one predictor may be countered by the features employed in another. Consequently, features that are stable across predictors and consequently more likely to generalize are weighed to a greater extent, in turn mitigating the effects of underspecification. Structural misalignment may nevertheless impact ensembles, and as such the effective returns are limited. 
+\subsection{Bayesian Marginalization and Ensembles}
+Finally, Ensemble-based networks - which mathematically can be considered an approximation of Bayesian marginalization ~\cite{bayesian_case,bayesian_generalization} - have demonstrated high degrees of generalizability for polyp-segmentation ~\cite{divergentnets,endoensemble}. 
 
+One can consider an ensemble to be a sampling of the Bayesian posterior - i.e \(p(w | \mathcal{D}\). What this means, in effect, is that the predictors are drawn from some distribution. This is essentially a side-effect of the fact that deep learning models are underspecified by the data. Consequently, ensemble-based networks mitigate underspecification to a certain extent, merely by representing a higher proportion of the space of possible predictors. This has the potential to increase generalizability, since each predictor is unlikely to have learned identical representations. Consequently whatever spurious correlations inferred by one predictor may be accounted for by the features employed in another. Moreover, behaviour that is stable across predictors are weighed to a greater extent in an an ensemble.
+
+That is not to say that ensembles solve underspecification altogether; it may be the case that the pipeline returns predictors which leverage spurious correlations in the vast majority of cases. In Bayesian parlance, this corresponds to certain predictors having high posterior likelihoods. In figure \ref{fig:bayesian_generalization}, for instance, most ensembles would consist mostly of non-generalizable models, and may not generalize well. 
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{example-image-a}
+    \caption{Bayesian marginalization may not yield generalizable predictors}
+    \label{fig:bayesian_generalization}
+\end{figure}
+\section{Summary}

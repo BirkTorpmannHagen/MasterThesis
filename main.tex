@@ -2,13 +2,15 @@
 \usepackage[utf8]{inputenc}           %% ... or latin1
 \usepackage[T1]{fontenc,url}
 \urlstyle{sf}
-\usepackage{babel,textcomp,csquotes,duomasterforside,varioref,graphicx, amsmath, amssymb, tabularx, tabulary, float}
+\usepackage{babel,textcomp,csquotes,booktabs,duomasterforside,varioref,graphicx, amsmath, amssymb, tabularx, tabulary, float, hyperref}
 \usepackage[backend=bibtex,style=numeric-comp]{biblatex}
+\newcolumntype{Y}{>{\centering\arraybackslash}X}
 
 \usepackage[acronym]{glossaries}
 \input{glossaries}
-
-\title{Improving the Generalizability of Deep Learning Models for Polyp Segmentation by Optimizing for Consistency}        %% ... or whatever
+\setlength{\parindent}{0em}
+\setlength{\parskip}{1em}
+\title{Generalizable methods for Deep Learning-based Segmentation of Colorectal Polyps}        %% ... or whatever
 \subtitle{}         %% ... if any
 \author{Birk Sebastian Frostelid Torpmann-Hagen}                      %% ... or whoever 
 \addbibresource{biblio.bib}            %% ... or whatever
@@ -23,8 +25,7 @@
         long]                                        %% ... or long
 
     \frontmatter{}
-    \chapter*{Abstract}
-
+    \input{abstract}
     \tableofcontents{}
     \listoffigures{}
     \listoftables{}
@@ -34,11 +35,14 @@
     \mainmatter{}
     
     \input{introduction}
-       \input{background}
+    \input{background}
     \input{methodology}
+    \input{experiments}
     \input{results}
     \input{analysis}
     \input{discussion}
     \backmatter{}
     \printbibliography
+    \input{appendix}
+
 \end{document}

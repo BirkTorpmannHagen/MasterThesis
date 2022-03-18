@@ -1,0 +1,80 @@
+\chapter{Experiments and Results}\label{experiments}
+%Experiments intro
+
+
+\section{Datasets}
+%Datasets intro here
+\autoref{tab:datasets} shows the size, image resolutions and availability of the respective datasets. 
+
+\begin{table}[h]
+    \centering
+   \begin{tabularx}{\linewidth}{XXXX}
+    \toprule
+    Dataset & Resolution & Size & Availability \\
+    \midrule
+    Kvasir-Seg & Variable & 1000 & Public \\
+    Etis-LaribDB & 1255x966 & 196  & Public \\
+    CVC-ClinicDB & 388x288 & 612  & Public \\
+    EndocCV2020 & ? & ?  & Request \\
+    \bottomrule
+\end{tabularx}
+    \caption{Dataset Overview}
+    \label{tab:datasets}
+\end{table}
+
+EndoCV2021 should also have been included, ideally, for better comparison to the results published in their proceedings, however since this dataset was unavailable at the time of writing this thesis, this was, unfortunately, not possible. 
+\section{Metrics}
+    %Intro here
+    \subsection{IoU}
+    The most natural way to quantify generalizability is, of course, simply evaluating the predictors on in-distribution and out-of-distribution data, then considering the difference. There are, naturally, several performance measures that can be used to this end, the most natural being IoU or the dice coefficient. The predictors were as such evaluated using the IoU across each of the selected datasets. 
+    
+    \subsection{Detection AUC}
+    However, since the provided segmentation masks are not necessarily completely accurate to the pixel-level, and since a polyp-segmentation system would in principle be used primarily as an explainable detection method, a  more pertinent metric is instead simply considering the proportion of polyps that the predictor has managed to segment to any extent at all as a correct prediction. I.e, it may be sufficient that the predictors segment half of the polyp, since this will at least bring the relevant area to the attention of whatever technician is conducting the endoscopy. Increasing detection rates is, after all, the primary concern, and so long as all polyps in a given image are detected, it matters little that some proportion of the pixels corresponding to these polyps are misclassified.
+    
+    To quantify this, it is possible to simply consider any segmentation above a given IoU threshold as correct, and thereafter compute the precision and recall. 
+    
+%    Connected component discussion here? I.e metrics that handle multiple polyps in one image
+    
+    There is of course not one specific threshold that would alert the endoscopy technician to the presence of polyps. Thus, it is better to instead consider the area under the receiver-operator characteristic curve.
+    
+    
+    \subsection{SIS and SIS-AUC}
+    As discussed in previous chapters, it is not necessarily the case that \gls{ood} datasets are available, hence the need for a validation procedure that can operate on \gls{ind} data but nevertheless presents some indication of the generalizability of the predictor. To this end, \gls{sis} was introduced. To establish to which extent \gls{sis} really can serve as a surrogate for \gls{ood} dataset evaluation, the area under the \gls{sis} curve across severity levels was also used as an evaluation metric.  
+    
+    \section{Ablation Study}
+    % To investigate the impact of each of the respective components of the new pipeline, and the possible dynamics between them, an ablation study was conducted. Every combination of validation procedure, loss function, model architecture and augmentation strategy were tested. 
+    \subsection{Model Baselines and Training}
+        In order to evaluate the generalizability of the aforementioned methods sufficiently, they need to be tested across a range of different models, namely DeepLabV3+, \gls{fpn}, UNet, Tri-Unet, and InductiveNet . As such, baseline generalizability metrics were collected for these models, wherein they were trained without augmentation, using \gls{ind}-evaluation, and vanilla Jaccard loss. The hyperparameters were determined experimentally, and can be seen in Table \ref{table:hyperparameters}. Unless otherwise specified, default values were used. 
+        \begin{figure}[h]
+            \centering
+        \begin{tabularx}{\linewidth}{XXX}
+        \toprule
+        \multicolumn{3}{c}{\textbf{Pipeline Configuration}}\\
+        \toprule
+        Component & Type & Hyperparameters \\
+        \midrule
+        Dataloader & - & \(batch\_size = 8\) \\
+        && \(\hbox{train/val/test split} = 80/10/10\)\\
+        \midrule
+        Optimizer & Adam & \(lr = 0.00001\)\\
+        \midrule
+        Scheduler & Cosine Annealing w/ Warm Restarts & \(T_0=50\) \\
+        & & \(T_{mult}=2\) \\
+        \midrule
+        Evaluation & Loss-based Early Stopping & \(epochs=250\)\\
+        \bottomrule
+        \end{tabularx}
+            \caption{Hyperparameters for baselines}
+            \label{table:hyperparameters}
+        \end{figure}
+        Ten predictors were trained for each model in order to ascertain statistical significance, and evaluated according to the aforementioned metrics. 
+        
+    
+    \input{tables/ablation_auc}
+
+        
+     \subsection{Ensembles}
+        \subsubsection{Singular Ensembles}
+        \subsection{Diverse Ensembles}
+        \subsection{Trained Multistage Ensembles}
+        
