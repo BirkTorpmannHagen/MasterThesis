@@ -1,50 +1,81 @@
-\chapter{Methods}
+\chapter{Methods}\label{methods}
 Summarizing the key points made in chapter \ref{background}, current deep learning pipelines are not equipped with evaluation methods suitable for out-of-distribution generalization, are largely incapable of reliably learning causally robust features, and are underspecified by the datasets they are trained on. Addressing generalization failure requires mitigating some of these problems. The literature, in broad strokes, tackles this by improving the models' inductive biases, e.g through attention-based mechanisms \cite{attention_generalizability, reverse_attention}, ensembles \cite{divergentnets, endoensemble}, etc, or their support, e.g through data augmentation techniques \cite{polyp_augmentation, cyclegan}. 
 
-This thesis attempts to combine the central ideas behind these methods into one unified deep learning pipeline, intended primarilyto maximize generalizability. Additionally, a novel evaluation procedure and loss function is also introduced. The components of the final pipeline can be summarized as follows:
+This thesis attempts to combine the central ideas behind these methods into one unified deep learning pipeline, intended primarily to maximize generalizability. The contributions can be summarized as follows:
 
 \begin{itemize}
-    \item A custom augmentation strategy, including both conventional augmentation functions and a \gls{gan}-inpainter
-    \item A familly of metrics based on a quantity referred to as the \glsfirst{sis} and a corresponding evaluation procedure, intended to capture the consistency of predictors when evaluating across augmented and non-augmented sets
-    \item A loss function and training method based on this metric, which optimizes for this notion of consistency, referred to as the \glsfirst{sil}
-    \item A model intended to learn more causally robust features through multi-task learning, referred to as InductiveNet
-    \item Evaluation using an ensemble of InductiveNets trained according to the above methods
+    \item A modified DeepLabV3-based model with dual decoders, intended to constrain the space of latent represent ations such that underspecification is mitigated
+    \item A new view of generalization as consistency with respect to a hidden perturbation model and a corresponding training procedure, metric and loss-function
+    \item An augmentation strategy informed by this alternative view, including both conventional augmentation functions and a \gls{gan}-inpainter decoder
+    \item An family of ensembles consisting of predictors being trained according to the above methods
 \end{itemize}
 
-By incorporating \gls{sis} into the evaluation pipeline as a surrogate for out-of-distribution performance, the pipeline is endowed with the ability to select the most generalizable predictor from a number of iid-risk-equivalent candidates. Moreover, through optimizing for this metric through the use of \gls{sis}, the model can avoid learning inconsistent features altogether. These are modifications that can be applied to practically any segmentation pipeline, and will as a consequence be tested across a number of different models. 
 
-Most models, however, as discussed in \ref{background}, readily learn spurious features. To mitigate this, a model can be constructed such that it learns more generalizable representations through the use of multi-task learning. This model, namely InductiveNet, acheives this through multi-task learning. Similar to DDANet~\cite{ddanet}, InductiveNet employs a single-encoder dual-decoder architecture, wherein the secondary encoder performs image-reconstruction. This should constrain the latent representations leveraged by the model, and hopefully reduce the likelihood of shortcut learning by the virtue of the fact that the model has to incorporate features that are conducive to both reconstruction and segmentation.
 
-Finally, one can combine several predictor in an ensemble in order to facilitate approximate bayesian inference, which as mentioned in the background has been shown to increase generalizability. 
+\section{DD-DeepLabV3+}
+As described in Chapter \ref{background}, generalization failure can in part be attributed to the fact that most deep learning models are underspecified by the training data. In other words, the same pipeline can return any number of risk-equivalent predictors that leverage dramatically different features. To mitigate this, one may impose constraints on the space of features that a given model can learn, such as multi-task learning \cite{ddanet}, attention-mechanisms \cite{attention_generalizability, reverse_attention}, preprocessing \cite{visual_cortex}, etc. 
 
-This section will further detail the implementation of these pipeline modifications, as well as their basis with respect to generalizability theory.
+As testing the relative effectiveness of all of these different approaches is beyond the scope of this thesis, a simple model is instead introduced, namely a dual-decoder DeepLabV3+. As its name suggests, this model is functionally equivalent to a standard DeepLabV3+, but is endowed with an additional decoder, which performs image reconstruction. This, in theory, should mitigate underspecification by virtue of the fact that the space of features that are conducive to both image reconstruction and segmentation simultaneously is smaller - and hence more specified- than the space of features that a segmentation-only model can learn. This is shown in \autoref{fig:dddeeplabv3}. This does, however, presuppose that features conducive to image reconstruction also are conducive to segmentation. A diagram of the model is shown in \autoref{fig:dddeeplabv3}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{illustrations/InductiveNet.png}
+    \caption{Dual Decoder DeepLabV3}
+    \label{fig:dddeeplabv3}
+\end{figure}
 
-\section{OOD Evaluation}
-As discussed at length in the background, distinguishing between generalizable and non-generalziable predictors is not feasible when evaluating only in iid-settings. This is because there is no way of knowing whether the learned features are causally related to the problem, or if they are simply predictive due to some other correlation that is strong in the training domain, but that in practical settings would not have any merit. A \gls{ood}-suitable evaluation procedure therefore requires some way of determining whether the predictor is leveraging non-causal or causal features. Determining what features are causal is, however, an intractable problem. For one, the patterns that neural networks learn are often difficult to identify, and even more difficult to understand intuitively. Though the field of explainable AI has made significant progress in this regard, there simply is not a way to determine the causality of the features learned by \glspl{dnn}. Moreover, establishing  this causality necessitates a complete understanding of the problem the model is trying to reason about in the first place. If this was at all possible, one might as well use the knowledge required to do so to design a classifier using conventional image-analysis. 
+As will be discussed in Chapter \ref{experiments}, this model also has the advantage of being easily compared to the standard DeepLabV3+; the part of the dual-decoder network responsible for segmentation is after all functionally identical to the single-decoder network.  This facilitates better analysis of the impact of the additional decoder, as the performance of the respective models can be compared directly. 
 
-Though establishing what is causal is difficult, establishing what \textit{isn't} causal is not all that complicated. To give a concrete example, consider once again the problem of classifying images of cows and camels. Associating the cow class with grass and the camel class with sand is obviously non-causal, since this pattern would not hold if the model for instance is asked to detect cows on Mars or camels on the Moon. To mitigate this, one may simply collect data of cows and camels in differing backgrounds, but such careful curation of datasets is not typically feasible. A better approach is to instead simply augment the data. In particular, one can generate multiple instances of the same sample but with varied backgrounds. Consistency across this augmented set can then be rewarded in order to bias the model towards learning background-invariant features. 
 
-This, of course, applies to more than just modifying backgrounds: the more of these non-causal changes to the input data-  from this point on referred to as perturbations - are accounted for and modelled, the more spurious correlations are excluded from the search, and the more likely the model is to learn the patterns that are actually causal. After all, a pattern can for all intents and purposes be considered causal when it holds when subjected to all forms of perturbations. 
 
-Thus, though rewarding causal behaviour is intractable, punishing non-causal behaviour is not. All that is required to do so is to be able to apply perturbations that highlight the non-causal reasoning the model employs, quantify the model's sensitivity to these perturbations, then minimize this quantity through optimization. The resulting model will then have learned invariance to whatever causally irrelevant information that the perturbation defines. This property of being invariant to perturbations will be referred to as the consistency of the model. 
+\section{Consistency as a Surrogate for Generalization}
+As discussed in Chapter \ref{background}, distinguishing between generalizable and non-generalizable predictors is not feasible when evaluating only in iid-settings. This is because there is no way of knowing whether the learned features are causally related to the problem, or if they are simply predictive due to some other correlation that is strong in the training domain, but that in practical settings would not have any merit. A \gls{ood}-suitable evaluation procedure therefore requires some way of determining whether the predictor is leveraging non-causal or causal features. Determining what features are causal is, however, an intractable problem. The patterns that neural networks learn are often difficult to identify, and even more difficult to understand intuitively. Moreover, even if these patterns could somehow be understood, it would nonetheless not be possible to determine the causality of the learned features. 
 
-Thus, this notion of consistency is in effect a surrogate for generalizability; if a model is consistent, it is invariant to non-causal patterns, and if it is invariant to non-causal patterns, it necessarily employs causal patterns. Optimizing for consistency can as a result mitigate both shortcut-learning and underspecification, subject only to the span of the space of perturbations and how well inconsistent behaviour can be quantified. For instance, if the perturbations affect the image such that certain shortcuts are broken, these shortcuts are less likely to be learned. A similar argument can be made for underspecification: if multiple predictors are risk equivalent but nevertheless encode conflicting inductive biases, probing the inductive biases learned by the respective predictors through various perturbations can reveal which are generalizable and which are not.
+Though establishing what is causal is difficult or even impossible, establishing what \textit{isn't} causal is not all that complicated. To give a concrete example, consider once again the problem of classifying images of cows and camels. Associating the cow class with grass and the camel class with sand is obviously non-causal, since this pattern would not hold if the model for instance is asked to detect cows on Mars or camels on the Moon. To mitigate this, ones first instinct may be to simply collect data of these cows and camels in a wide assortment of differing backgrounds, but such careful curation of datasets is not typically feasible. To give a more concrete example, it is not feasible to collect polyp-segmentation data that is fully representative of all the differing demographics, imaging equipment, operator faults, and so on that one may expect in deployment. There is simply too much variation to be fully accounted for. Instead, one has to be creative with how one uses what data is actually available, and try to squeeze as much utility as possible from it.
 
-Naturally, this all presupposes that there is some model that can output all possible perturbations one might desire the model to be invariant to. This is of course not the case. As highlighted by the pervasiveness of adversarial attacks and the relative ineffectiveness of adversarial defences, the perturbations that break DNNs are not necesssarily intuitive and are difficult to analyze in a manner that is conducive to the task of engineering invariance thereto. 
+Once again going back to the cows and camels example, one may for instance generate multiple instances of the same cow but with varied backgrounds, and in some manner force the model to learn features that are invariant to the backgrounds. This, of course, applies to more than just modifying backgrounds: the more of these non-causal changes to the input data-  from this point on referred to as perturbations - are accounted for and modeled, the more spurious correlations are excluded from the search, and the more likely the model is to learn the patterns that are actually causal. After all, a pattern can for all intents and purposes be considered causal when it holds when subjected to all possible perturbations the model could be exposed to in deployment. 
+
+Though rewarding causal behaviour is intractable, punishing non-causal behaviour is not. All that is required to do so is to be able to apply perturbations that highlight the non-causal reasoning the model employs, quantify the model's sensitivity to these perturbations, then minimize this quantity through optimization. The resulting model will then have learned invariance to whatever causally irrelevant information that the perturbation defines. This property of being invariant to perturbations will be referred to as the consistency of the model. 
+
+Thus, this notion of consistency is in effect a surrogate for generalizability; if a model is consistent to all perturbations, it is invariant to non-causal patterns, and if it is invariant to all non-causal patterns, it necessarily employs causal patterns. Optimizing for consistency can as a result mitigate both shortcut-learning and underspecification, subject only to the span of the space of perturbations and how well inconsistent behaviour can be quantified. For instance, if the perturbations affect the image such that certain shortcuts are broken, these shortcuts are less likely to be learned. A similar argument can be made for underspecification: if multiple predictors are risk equivalent but nevertheless encode conflicting inductive biases, probing the inductive biases learned by the respective predictors through various perturbations can reveal which are generalizable and which are not.
+
+Naturally, this all presupposes that there is some model that can output all possible perturbations one might desire the model to be invariant to. This is of course not the case. As highlighted by the pervasiveness of adversarial attacks and the relative ineffectiveness of adversarial defences, the perturbations that break DNNs are not necesssarily intuitive, and are difficult to analyze in a manner that is conducive to the task of engineering invariances.  
 
 Nevertheless, much stands to be gained if the model learns to be invariant even to a fairly limited space of perturbations. Though generalizability is by no means guaranteed in this case, the odds of learning generalizable features are improved simply because the perturbations limits the types of patterns that a given model can learn. If for instance a white-light endoscopic image is perturbed such that it mimics a narrow-band image, and the model learns to be invariant to this perturbation, predictors that leverage white-light or narrow-band dependent features will no longer be returned from ERM.
 
-This approach, then, requires two components: a perturbation model, and some form of training procedure that imposes invariance to the transformations that the perturbation model employs. To this end, a numeric representation of consistency in the context of segmentation needs to be established.
+This approach, then, requires two components: a perturbation model, and some form of training procedure that imposes invariance to the transformations that the perturbation model employs. 
 
-\section{Segmentation Inconsistency Score}
-In the context of segmentation, consistency is the ability of the model to output a reasonably unchanged segmentation when the input data is subjected to some perturbation. Inconsistency, by the same token, is the extent to which the output changes when subjected to a perturbation beyond what should be expected from the transform. One simple approach to express this numerically would simply be to count the number of pixels that change given some perturbation, and normalize this with respect to the total number of pixels, or in other words calculating the intersection over union, also known as the Jaccard Index, across the perturbed and unperturbed segmentations.  However, the ground truth may of course change as a result of the perturbation - if the image is rotated, for example, the segmentation mask should be rotated accordingly. If an image is globally distorted in some way, the segmentation should exhibit the corresponding distortion. If an image is exposed to low-amplitude additive noise, the segmentation should not really be affected at all, and so on. This, of course, all needs to be taken into account. This can be achieved by discounting the proportion of pixels that is expected to change from the overall metric. Formally, this metric, referred to as the \glsfirst{sis} can be expressed as follows:
+\subsection{Data Augmentation and Consistency}
+    This notion of a perturbation model and modifying the learning objective such that these perturbations are accounted for is not in and of itself a new idea, indeed most deep learning pipeline attempt this implicitly through data augmentation. In this case, the perturbation function is simply randomly applying some set of transformations to the image, and the training procedure is Empirical Risk Minimization. By minimizing the empirical risk subject to a range of augmentation, one might expect that the model will learn features that are optimal across the augmentations being used, and thus endow it with some degree of invariance to these augmentations.
+    
+    This, however, is not necessarily the case. To illustrate, consider a pipeline intended to segment melanomas. As mentioned in \autoref{gen_failure_med}, the models in such pipelines are often sensitive to skin-tone. Let us assume that the dataset consists primarily of patients with light complexions, and that data augmentation is used in an attempt to combat any bias as a result of this unbalanced dataset. For simplicity, let us assume that the only augmentation used is transforming the image to black-and-white with probability \(p=0.5\). In theory, the empirical risk will be best minimized by learning features that do not consider colour and thus skin-tone at all, and instead simply learn to consider the shapes and sizes of the melanomas. 
+    
+    This is unlikely for two reasons: first, it presupposes that the model readily learns these generalizable features in favour of the more predictive but spurious features as it is being trained. Second, it assumes that learning to perform well is equally easy on both the augmented and the un-augmented images. If, for instance, the model can quickly achieve high average performance and thus minimize risk by using colour features to achieve excellent performance on the non-augmented images, while exhibiting mediocre performance on the augmented data, it is unlikely that the model will ever exit this extremely broad local minimum in favour of a more shape-biased and generalizable configuration. Moreover, it may be the case that these shape-based features require significantly more parameters in order to model sufficiently and thus that the performance on the augmented data is limited to a much lower upper bound. Thus, risk will be minimized not by learning features invariant to the transform, but by learning features that result in a sufficient equilibrium of performance across the augmented and unaugmented sets. I.e, it will try to learn predictive but brittle features as much as possible to maximize performance on unaugmented data, but under the condition that the performance does not degrade too much on the augmented data This is illustrated in \autoref{fig:melanoma}
+    
+    \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{example-image-a}
+        \caption{Generalization, risk and feature choices}
+        \label{fig:melanoma}
+    \end{figure}
+    
+    Thus, a more explicit notion of consistency is required; one that explicitly rewards models that predict equivalently regardless of whether the data is augmented or not, independent of the difficulty of the augmentations, and that weighs the performance on augmented data accordingly. 
+    
+\subsection{Quantifying Segmentation Consistency}
+In the context of segmentation, consistency is the ability of the model to output a reasonably unchanged segmentation when the input data is subjected to some perturbation. One simple approach to express this numerically would simply be to count the number of pixels that do not change in the predictions given some perturbation, and then normalize this with respect to the total number of pixels predicted in both the perturbed and unperturbed images. This, in effect, is equivalent to calculating the \gls{iou} across the perturbed and unperturbed segmentations. However, the ground truth may of course change as a result of the perturbation - if the image is rotated, for example, the segmentation mask should be rotated accordingly. If an image is globally distorted in some way, the segmentation should exhibit the corresponding distortion. This, of course, all needs to be taken into account. This can be achieved by discounting the pixels in the predictions that are expected to change from the overall count. Formally, this metric, referred to as the \glsfirst{sis} can be expressed as follows:
 
-Let \(Y:=\{y,\hat{y}:=f(x)\}\) be the set consisting of the segmentation labels (masks) and predictions for the unperturbed samples, where \(f(\cdot)\) denotes the model. Let \(\epsilon(\cdot)\) be some perturbation function. Then, let \(A:=\{a:=\epsilon(y),\hat{a}:=f(\epsilon(x))\}\) be the set consisting of segmentation predictions and masks when the input is subjected to a perturbation. Inconsistency can then be defined by:
+Let \(Y:=\{y,\hat{y}:=f(x)\}\) be the set consisting of the segmentation labels (masks) and predictions for the unperturbed samples, where \(f(\cdot)\) as before denotes the model. Let \(\epsilon(\cdot)\) be some perturbation function - for instance data augmentation. Then, let \(A:=\{a:=\epsilon(y),\hat{a}:=f(\epsilon(x))\}\) be the set consisting of segmentation predictions and masks when the input is subjected to a perturbation. Consistency can then be quantified as:
+
 \begin{equation}
+    \mathcal{C}(A,Y) = \frac{\sum\{\{y=1\} \cap \{a=1\} \cap \{\hat{y}=1\} \cap \{\hat{a}=1\} \}}
+    {\sum\{\{y=1\} \cup \{a=1\} \cup \{\hat{y}=1\} \cup \{\hat{a}=1\} \}}
+\end{equation}
+
+Similarly, \textit{inconsistency} can be expressed using the symmetric difference operator, i.e \(A \ominus B = A \cup B - A \cap B\): 
+\begin{equation}\label{sil}
     L_c = \frac{1}{\sum\{y \cup a \cup \hat{y} \cup \hat{a} \}} \sum \{y\ominus\hat{y}\ominus a\ominus\hat{a}\}
 \end{equation}
-Where \(\ominus \) denotes the symmetric difference, also often referred to as the XOR operator.
-This, as mentioned, corresponds to counting the number of pixels that change after the input is subjected to a perturbation - \(\hat{a}\ominus \hat{y}\), but discounting those we expect to change, \(a\ominus y\). 
+
+This corresponds to counting the number of pixels that change after the input is subjected to a perturbation - \(\hat{a}\ominus \hat{y}\), but discounting those we expect to change, \(a\ominus y\). 
 It should be noted that this metric is minimized not only if the predictions are both correct and consistent with one another, but also if the predictions are both incorrect, so long as whatever change that occurs is consistent with the expected change. This is illustrated in Figure \ref{loss_fn}
 \begin{figure}[ht]
     \includegraphics[width=\linewidth]{illustrations/loss_visualisation.drawio.png}
@@ -52,14 +83,43 @@ It should be noted that this metric is minimized not only if the predictions are
     \label{loss_fn}
 \end{figure}  
     
-Note, however, that this metric does not presuppose what transformation has occurred. In Figure \ref{loss_fn}, for instance, the change induced by the perturbation may correspond to simply moving the polyp in the image (and replacing the empty space with a believable background), or it may correspond to a rotation by 90 degrees. How this should be analyzed with respect to consistency is up to interpretation - one can argue that a rotation should rotate the incorrect predictions as well, or one can argue that it should only rotate the correct component of the prediction. For simplicity, \gls{sis} is based on the latter interpretation. 
+Moreover, note that this metric does not presuppose what transformation has occurred. In Figure \ref{loss_fn}, for instance, the change induced by the perturbation may correspond to simply moving the polyp in the image (and replacing the empty space with a believable background), or it may correspond to a rotation by 90 degrees. How this should be analyzed with respect to consistency is up to interpretation - one can argue that a rotation should rotate the incorrect predictions as well, or one can argue that it should only rotate the correct component of the prediction. For simplicity, \gls{sis} is based on the latter interpretation. This will be discussed in further detail in \autoref{conclusion}
 
-\section{Perturbation Models}
+\subsection{Smooth extension and Inconsistency Loss}
+Inconsistency as expressed in \autoref{sil} is not differentiable, and thus it cannot in its current state be used as a part of a loss function. This, naturally, limits the utility of the idea somewhat. As such, a smooth extension of this metric in needed. This can be achieved in much the same way as how the Jaccard loss can be derived from the Jaccard index - i.e by using differentiable versions of the set functions. 
+
+I.e, we can extend the definition of the symmetric difference to \(\Theta(A,B) = A(1-B) + B(1-A)\). This, naturally, is equivalent to the standard symmetric difference if the values of A and B are binary. Similarly, the union operator can be extended as \( \bigcup(A,B) = A+B-AB\). Like its binary equivalents, these operators maintain their associative and commutative properties. Consequently, one can optimize for consistency by replacing the operators in \ref{sis} with these functions, which in turn can be used as a loss function:
+
+\begin{equation}
+    L_c(y, \hat{y},  a, \hat{a}) = \sum \frac{\Theta(y, \hat{y},  a, \hat{a})}{\bigcup(y, \hat{y},  a, \hat{a})}
+\end{equation}
+
+This loss function will from this point be referred to as \glsfirst{sis}. 
+
+\subsection{Mathematical relationship with Data Augmentation}
+To prove that training with \gls{sis} indeed is different from simply using data augmentation, one can compare their effects on the gradients. If the gradients are not equal up to scale, training the models will result in exploring different parts of the search-landscape, irrespective of any amount of tuning of learning rates or any of the other hyperparameters governing the optimization process. 
+
+As \gls{sil} is based on the Jaccard index, it will be compared to a pipeline that uses the Jaccard loss. Moreover, since data augmentation is a stochastic process - in other words, the augmentations applied according to some probability \(p\), the gradients can only be analyzed sufficiently by considering the expected loss. 
+\begin{align*}
+    \mathcal{L} &= \mathbb{E}_p[\mathcal{J}(Z)]; Z \in_{R \thicksim p} \{ \{y, \hat{y}\},\{a, \hat{a}\}\\
+    &= p\mathcal{J}(a, \hat{a})+ (1-p)\mathcal{J}(a, \hat{a})
+\end{align*}
+Thus, the expected gradient is simply:
+\begin{equation}
+    \nabla \mathcal{L} = p \nabla \mathcal{J}(a, \hat{a})+ (1-p)\nabla \mathcal{J}(a, \hat{a})
+\end{equation}
+In the case of \gls{sis}:
+\begin{align*}
+    \mathcal{L} = \sum \frac{\Theta(y, \hat{y},  a, \hat{a})}{\bigcup(y, \hat{y},  a, \hat{a})}
+    &=
+\end{align*}
+
+\section{Implementing SIS}
 So far, it has been assumed that a perturbation model has been given beforehand. This is of course not the case, and naturally any such model needs to be designed with respect to the domain in question. Rotational invariance makes sense for endoscopic images, for instance, but not for classification of hand-written numbers. Thus, in order to engineer such a model, it is first necessary to establish what invariances are desired for the given task. In the case of polyp-segmentation, it is clear that it is necessary to account for variability in for instance lighting, image-resolution, polyp-size, polyp-shape, polyp-location, camera-quality, color-shifts, blurs, optical distortions, and affine transformations. Thus, a model is required that can (more or less) parametrize this variability. Broadly speaking, these transformations can be categorized as follows:
 \begin{itemize}
     \item Pixel-wise variability, which affect only the image, i.e color-shifts, brightness shifts, contrast-shifts,  blurs etc. Practically, this corresponds to changes in lighting conditions, camera motion, dye applications, etc.
     \item Geometric variability, which affect both the image and the segmentation mask by some parametrizable quantity, i.e affine transforms and distortions. Practically, this corresponds to endoscope orientation, optical distortion in the camera, zooming, etc. 
-    \item Manifold variablity, which affects both the image and the segmentation mask depending on a learned model of the distribution. Practically, this corresponds to the size, shape and location of the polyps
+    \item Manifold variability, which affects both the image and the segmentation mask depending on a learned model of the distribution. Practically, this corresponds to the size, shape and location of the polyps
 \end{itemize}
 Pixel-wise variability and geometric variability can be modelled fairly trivially through the use of the same transformations typically used in conventional data-augmentation. Manifold-variability, however, is somewhat more difficult, and requires a functional representation of the distribution. \cite{modelbased} and \cite{cyclegan} achieve this through cross-dataset style-transfer, but this of course necessitates multiple datasets. Given only one dataset, a different method must be used. For a classification task, this could for instance be DeepAugment~\cite{deepaugment} or a similar technique. DeepAugment, however, cannot account for the changes in the segmentation mask that should be induced by the augmentations it generates. Consequently, some other generative model wherein the changes in the segmentation mask can be accounted for is required. To this end, a \gls{gan}-inpainter can be used. 
 
@@ -126,12 +186,12 @@ The parameters for the respective functions where selected as follows: one trans
     \label{fig:my_label}
 \end{figure}
 
-It should also be noted that this set of augmentations, even including the inpainter, is of course not complete - after all, it cannot be, as it would require some way to model any and all changes in the image that do not destroy the possibility of recognizing the polyp. As discussed previously it nevertheless may suffice to model a limited space of these transformations, as it increases the likelihood of learning generalizable features. 
+It should also be noted that this set of augmentations, even including the inpainter, is of course not complete, in the sense that it accounts for all variability that one might expect in practice. As discussed previously it nevertheless may suffice to model a limited space of these transformations, as it increases the likelihood of learning generalizable features. 
 
 
-\section{Siamese Consistency Training}
+\subsection{Consistency Training}
 
-    Similarly to how one can optimize for the Jaccard Index through the Jaccard Loss, so too can one optimize for consistency by using \gls{sis} as a component of a loss function. The perturbation model will then in effect operate as a form of data augmentation, but less stochastic; half of each batch will consist of training samples taken directly from the dataset, with the remaining elements in the batch being these same images, but augmented according to the perturbation model. The model will then in effect be in a siamese configuration, as shown in Figure \ref{fig:consistency_training}
+    Similarly to how one can optimize for the Jaccard Index through the Jaccard Loss, so too can one optimize for consistency by using \gls{sis} as a component of a loss function. EXPAND shown in Figure \ref{fig:consistency_training}
     
     \begin{figure}[ht]
             \centering
@@ -154,14 +214,6 @@ Preliminary experiments showed that this, however, exhibited some degree of inst
     \end{equation}
 Using this formulation, the model will start off trying to learn features that contribute to generally improved segmentation performance, then as segmentation performance improves start principally focusing on learning consistent features. Moreover, if the model starts veering into areas in the loss-landscape that constitute poor segmentation performance, it will self-correct by weighing the segmentation loss more. 
 
-\section{InductiveNet}
-Many of the models submitted to the EndoCV2021 challange, and for that matter other models exhibiting high degrees of generalizability, impose certain constraints to the latent representations they are capable of learning, for instance attention-based mechanisms, \cite{attention_generalizability}, decoupling the segmentation process into multiple stages \cite{doubleencdec}, or adding auxilliary tasks \cite{ddanet}. This, in theory, benefits the generalizabiltiy of the model by limiting the search space to areas wherein the learned features better represent the nature of the data the models are attempting to interpret. 
+\section{Bayesian Marginalization via Ensembles}
 
-To further investigate the extent to which this affects generalizability, a similar model to DDANet~\cite{ddanet}, albeit fairly simplified, is proposed, wherein a single resnet34 encoder is used in conjunction with two DeepLabv3+ decoders. One decoder performs image reconstruction, while the other performs segmentation. This has the benefit of permitting apples-to-apples comparison with DeepLabV3+, as the segmentation portion of the network is identical to the standard model; the only difference is that the latent representations are strengthened through the reconstruction component. 
-
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=\linewidth]{illustrations/InductiveNet.png}
-    \caption{InductiveNet}
-    \label{fig:my_label}
-\end{figure}
+\section{Summary}

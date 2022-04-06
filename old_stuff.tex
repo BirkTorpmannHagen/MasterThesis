@@ -186,3 +186,20 @@ Using this formulation, the model will start off trying to learn features that c
         % For the purposes of this thesis, it may be useful to think about \glspl{dnn} as general-purpose correlation machines; i.e that they take some data in, and then spits out some correlations it has managed to identify within this data. This notion will be explained in more detail later in this chapter. 
         
         % For computer vision, the most common \gls{dnn} architecture is the \gls{cnn}. \glspl{cnn} operate using convolutions, as its name suggests. These convolutions process the image according to the parameters of the convolution kernels, which the model learns during training.
+        
+        
+        To investigate the impact of each of the components of the new pipeline, and the possible dynamics between them, an ablation study was conducted. Every combination of validation procedure, loss function and augmentation strategy were tested across a number of models. For each of these combinations, ten predictors were trained in order to test their impact to statistical significance. \autoref{experiments} shows a diagram detailing the experiments performed. For each model, a predictor was trained varying its evaluation procedure - namely \gls{sis}-based and loss-function based, for each loss function - either jaccard or \gls{sil}, and for each augmentation stategy - either no augmentation, vanilla data augmentations, and vanilla augmentations with the GAN-inpainter. Since \gls{sil} requires augmentations to work, it obviously cannot be tested without using data augmentation, and as such this configuration is dropped from the tree.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\linewidth]{illustrations/experiment.png}
+    \caption{Diagram over Experiments. 10 predictors are trained for each leaf-node in the tree. In the augmentation strategy layer, 0 corresponds to no augmentation, V to vanilla augmentation, and G to augmentation using both vanilla augmentations and an inpainter}
+    \label{fig:experiments}
+\end{figure} 
+
+Since inpainting is intended to serve as an auxiliary augmentation technique on top of conventional augmentations, and due to insufficient computatational resources, it was only tested in conjunction with conventional augmentation.  
+
+This chapter will cover in further detail how the experiments were conducted and how the methods were implemented, as well as present the results of the ablation study. Discussion and analysis of these results and their implications will be reserved for chapters \ref{analysis} and \ref{discussion}. 
+
+          In conventional deep learning pipelines, the value of the loss function used to compute, and as a consequence the gradient, is computed from some sample of the training data. This is known as \glsfirst{erm}. The size of this sample gives rise to three different families of optimization techniques: stochastic gradient descent, which uses one training sample at a time to approximate the gradient, mini-batch gradient descent, which uses a few of the available training samples, and batch gradient descent, which uses the entire training set. This is determined by the Dataloader. Mini-batches are used in most modern deep learning pipelines, and as such this will be assumed for the rest of this section.
+          Instead, the training procedure loops through the entire training set some number of times, computes the loss and the gradient, minibatch or batch, and finally update the weights according to the optimizer and scheduler by backpropagating the gradient of the loss function with respect to the relevant weights.

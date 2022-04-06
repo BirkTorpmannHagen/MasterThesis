@@ -1,0 +1,21 @@
+\begin{align}
+L_s &= \frac{1}{\sum \hat{y} \cup \hat{a}} \sum \hat{y}\ominus y \\
+L_c &= \frac{1}{\sum \hat{y} \cup \hat{a}}\sum  [\hat{y}\ominus y\ominus \hat{a} \ominus a  ]\\
+L_{c+s} &= L_c(Y, A) + L_s(Y)\\
+&=\frac{1}{\sum \hat{y} \cup \hat{a}} \Bigg[\sum  \{\hat{y}\ominus y\ominus \hat{a} \ominus a  \} + \sum \{\hat{y}\ominus y\}  \Bigg]\\
+\begin{split}
+&=\frac{1}{\sum \hat{y} \cup \hat{a}} \Bigg[\sum \{\hat{y}\ominus y\} + \sum  \{\hat{a}\ominus a\}\\
+&-\sum \{\setminus y\cap \hat{y} \cap a \cap \hat{a}\}\cup\{y\cap \setminus \hat{y} \cap a \cap \hat{a}\}\cup \\ 
+&\{y\cap \hat{y} \cap \setminus a \cap \hat{a}\}\cup\{y\cap \hat{y} \cap a \cap \setminus \hat{a}\}\\
+&-\sum\{\setminus y\cap \hat{y} \cap \setminus a \cap \hat{a}\} \cup\{y\cap \setminus \hat{y} \cap \setminus a \cap \hat{a}\} -\\
+&\cup\{\setminus y\cap \hat{y} \cap a \cap \setminus\hat{a}\}\cup\{y\cap \setminus \hat{y} \cap a \cap \setminus \hat{a}\} \\ 
+&+\sum \{\hat{y}\ominus y\}   \Bigg]\\
+\end{split}\\
+\begin{split}
+&=2L_s(y, \hat{y})+L_s(a, \hat{a}) +\frac{1}{\sum \hat{y} \cup \hat{a}} \Bigg[\\
+&-\sum \{\setminus y\cap \hat{y} \cap a \cap \hat{a}\}\cup\{y\cap \setminus \hat{y} \cap a \cap \hat{a}\}\cup \\ 
+&\{y\cap \hat{y} \cap \setminus a \cap \hat{a}\}\cup\{y\cap \hat{y} \cap a \cap \setminus \hat{a}\}\\
+&-\sum\{\setminus y\cap \hat{y} \cap \setminus a \cap \hat{a}\} \cup\{y\cap \setminus \hat{y} \cap \setminus a \cap \hat{a}\} -\\
+&\cup\{\setminus y\cap \hat{y} \cap a \cap \setminus\hat{a}\}\cup\{y\cap \setminus \hat{y} \cap a \cap \setminus \hat{a}\}   \Bigg]
+\end{split} \label{loss_proof}
+\end{align}

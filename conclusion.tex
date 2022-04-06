@@ -1,0 +1,57 @@
+\chapter{Conclusion}\label{conclusion}
+\section{Summary}
+This thesis aimed to synthesize recent findings in the field of generalizable deep learning in an attempt to develop methods towards increasing the generaliazability of deep-learning based segmentation of colorectal polyps.
+
+Chapter 2 provided an overview of deep learning, segmentation, and delved further into why such systems so readily fail to generalize, starting from first principles and analyzing the shortcomings of \gls{erm}. This was then connected to recent analyses of generalzability failure, including the notion of underspecification, shortcut learning and structural misalignment. Finally, known methods of increasing generalization as investigated in EndoCV2021 and elsewhere were then analyzed with respect to the established theory. 
+
+This was then in turn used to inform the development of the methods discussed in \autoref{methods}, including a novel training paradigm, augmentation technique, model architecture and ensemble model. Each of these methods were also discussed with respect to the theory explored in \autoref{background}. The relationship between the proposed training paradigm - consistency training - and regular data augmentation was also established mathematically.
+
+Several experiments were then conducted in \autoref{experiments} in order to ascertain the impact of the proposed methods:
+
+First, baseline generalizabiltiy metric were collected for 5 separate models. The findings supported the notion that larger models are more prone to generalizability failure, as demonstrated by the significant gap between the Unet and the TriUnet. The dual-decoder DeepLabV3+ exhibited considerably lower generalizability than the regular DeepLabV3+. This suggests that underspecification may not be the principle cause of generalizability failure across these two models. As will be discussed in the next section, this merits further study.
+
+In the next experiment, data augmentation was shown to increase generalizability by a considerable margin. Synthetic augmentation via inpainting was shown to reduce generalizability, but this finding was deemed inconclusive due to the relatively low performance of the inpainter. 
+
+The impact of consistency training was then tested and compared to regular data augmentation and no augmentation. The results show that consistency training outperforms regular data augmentation by a considerable margin on the most difficult of the three \gls{ood} datasets. The impact on the remaining datasets was somewhat lower, however, with the difference being statistically significant only on one of them. 
+
+Finally, predictors trained according to the best methods as identified in the previous experiments were then assembled into ensembles. This was then compared to the winner of EndoCV2021, DivergentNet \cite{divergentnets}. The results showed that (...) 
+
+
+\section{Contributions}
+The main contributions in this thesis can be regarded as twofold:
+
+First, it provides an exploratory overview of the generalizable methods as proposed in other literature and analyses their impact experimentally. Though the results corroborated the literature in many cases, there were also a fair number of surprising results, in particular with regards to the effect of multitask learning and more generally the impact of the different model architectures. This highlights the need for further experimentation on the impact of the tested methods. As has been clearly demonstrated throughout, and as will be further discussed in the next section, there is significant room for further research across practically every component in the deep learning pipeline. 
+
+Second, the thesis introduced a new way of thinking about generalization as consistency to perturbation. This, as mentioned, informed the development of consistency training, which as mentioned was shown to outperform data augmentation by a considerable margin on the most difficult of the three \gls{ood} datasets. 
+
+\section{Further work}
+    \subsection{Improving Consistency Training}
+        Though consistency training did exhibit improvements when compared to conventional data augmentation, the improvement is fairly marginal and argubly attributable to the the dynamic weighing intrinsic to it, which may be reproducible by simply modulating the augmentation probability. There is, however, room for further study. In this thesis, consistency was expressed merely as the symmetric difference between the expected change in the output due to augmentation and the actual change due to augmentation. This, however, as discussed in \autoref{methods}, is largely agnostic to the augmentation being performed. However, the nature of these augmentations should be taken into account. If the image is subjected to a 90 degree rotation, for instance, the prediction would be considered perfectly consistent so long as the pixels corresponding to the polyps are rotated, and the incorrectly classified pixels remain unchanged. However, if the model instead learns to rotate all of the pixels - even those that are incorrectly classified - it would have learned a more accurate representation of what constitutes consistent behaviour. This is illustrated in \autoref{fig:new_loss}
+        \begin{figure}
+            \centering
+            \includegraphics{example-image-a}
+            \caption{Modified segmentation inconsistency loss}
+            \label{fig:new_loss}
+        \end{figure}
+        In addition to improving the way by which consistency is quantified, there are several unexplored directions through which the training procedure itself could be further improved. The perturbation model, for instance, could be modified in any number of ways: one could for instance adversarially sample difficult augmentations based on the consistency score, and use these during training. One could also perform a study to ascertain the impact of the perturbation models' constituent augmentation functions on generalization. It may for instance be the case that some of the augmentations used in the perturbation model used in this thesis hampered generalizability more than it facilitated it, though without a complete study this is impossible to say with any certainty.  
+        
+        Moreover, one could experiment with modulating the difficulty of the augmentations. In the experiments performed in this thesis, the augmentation difficulty was kept constant - i.e, the augmentation hyperparameters were capped to a specific range. However, it may be the case that gradually increasing the difficulty or modulate it according to some sort of annealing function could further improve the efficacy of consistency training. 
+    \subsection{Deep Preprocessing}
+        Consistency Training is based on increasing the support of the pipeline in a more controlled manner. Though this as established increases generalizability, it may also be possible to simply preprocess the images such that \gls{ood} transformations or artefacts are accounted for. This could be acheived by training a model - for instance a CycleGAN or a \gls{vae} to map an augmented input back into its unaugmented state. Consistency training could also be employed to this end; the model could be given two samples augmented in a different manner, and then have a loss term corresponding to the difference between these two reconstructions. The resulting pipeline is illustrated in \autoref{fig:preproc}
+        
+        \begin{figure}
+            \centering
+            \includegraphics[width=\linewidth]{example-image-a}
+            \caption{Caption}
+            \label{fig:preproc}
+        \end{figure}
+    
+    \subsection{Further investigations of multitask learning}
+        Multitask learning was only briefly investigated in this thesis through the dual-decoder DeepLabV3+, which as a reminder performed image reconstruction as an auxillary tasks. Though this, interestingly, had the opposite of the intended effect - i.e, that it exhibited increased variability and reduced generalization when compared to the standard DeepLabV3+ - the results are by no means sufficiently conclusive to discredit multitask learning altogether. 
+    
+        Further investigating the impact of multitask learning on generalization is as such warranted. One could for instance perform a study on the impact of different tasks; perhaps image reconstruction is less conducive to generalization than something more task-adjacent, such as dimming the background or simple object detection. Depending on the results of this study, one could then also experiment with adding multiple auxiliary tasks. Investigating the variance of the latent representation in these models across multiple runs of training and comparing these to the variance in single-task models may be interesting and further the understanding of what \glspl{dnn} actually learn.
+    
+    \subsection{Generalizable Architectures}
+        
+    \subsection{Ensemble Size and Diversity}
+        In \autoref{ensembles}, Only ensembles consisting of four predictors from the same class were evaluated, in large part to facilitate fair comparison to DivergentNet. However, the impact of ensemble size and model diversity should not be altogether neglected. (...=
