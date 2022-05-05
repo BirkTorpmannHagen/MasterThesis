@@ -1,3 +1,44 @@
-\chapter*{Appendix} \label{Appendix}
-\addcontentsline{toc}{chapter}{Appendix}
-\setcounter{chapter}{6}
+\chapter*{Appendix A} \label{Appendix}
+\addcontentsline{toc}{chapter}{Appendix A}
+\setcounter{chapter}{7}
+
+\setcounter{section}{0}
+\section{Code and Data access}\label{code_data}
+All relevant code and data can be found on the GitHub repository: https://github.com/BirkTorpmannHagen/Master
+\section{P-values}\label{p_values}
+
+
+\subsection{Consistency Training}
+    \begin{table}[h]
+        \centering
+        \begin{tabularx}{0.75\linewidth}{lXr}
+            \toprule
+            Dataset & T-Statistic & p-Value \\
+            \midrule
+            Kvasir-SEG & 1.3707 & 0.82638\\
+            Etis-LaribDB & 4.4266 & 0.99997\\
+            CVC-ClinicDB & 2.6542 & 0.99069 \\
+            EndoCV2020 & 3.5259 & 0.99935 \\
+            \bottomrule
+        \end{tabularx}
+        \caption[T-test results consistency training]{Results from Independent-sample two-tailed t-test for each dataset when comparing the average \glspl{iou} across models of Consistency Training and conventional data augmentation}
+        \label{tab:ttest_avgs}
+    \end{table}
+
+\section{Non-weighted consistency training}\label{non_weighted_ctraining}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{example-image-a}
+    \caption{Caption}
+    \label{fig:my_label}
+\end{figure}
+
+\chapter*{Appendix B} \label{Appendix}
+\addcontentsline{toc}{chapter}{Appendix B}
+\setcounter{chapter}{8}
+\setcounter{section}{0}
+\section{Paper submitted to NeurIPS2022}
+\setcounter{chapter}{0}
+\setcounter{section}{0}
+

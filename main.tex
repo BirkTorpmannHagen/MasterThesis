@@ -2,15 +2,20 @@
 \usepackage[utf8]{inputenc}           %% ... or latin1
 \usepackage[T1]{fontenc,url}
 \urlstyle{sf}
-\usepackage{babel,textcomp,csquotes,booktabs,duomasterforside,varioref,graphicx, amsmath, amssymb, tabularx, tabulary, float, hyperref}
+\usepackage{babel,textcomp,csquotes,booktabs,duomasterforside,varioref,graphicx, amsmath, amssymb, tabularx, tabulary, float, hyperref, cleveref, mathtools}
 \usepackage[backend=bibtex,style=numeric-comp]{biblatex}
 \newcolumntype{Y}{>{\centering\arraybackslash}X}
-
+\usepackage{babel}
+\usepackage{enumitem}
+\usepackage{blindtext}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\setitemize{labelindent=1.5em,labelsep=0cm,leftmargin=*}
 \usepackage[acronym]{glossaries}
 \input{glossaries}
 \setlength{\parindent}{0em}
 \setlength{\parskip}{1em}
-\title{Generalizable methods for Deep Learning-based Segmentation of Colorectal Polyps}        %% ... or whatever
+\title{On the Generalizability of Deep Learning-based Medical Image Segmentation Methods}        %% ... or whatever
 \subtitle{}         %% ... if any
 \author{Birk Sebastian Frostelid Torpmann-Hagen}                      %% ... or whoever 
 \addbibresource{biblio.bib}            %% ... or whatever
@@ -29,7 +34,8 @@
     \listoffigures{}
     \listoftables{}
 
-    \chapter*{Preface}
+    \chapter*{Acknowledgments}
+    (...)
 
     \mainmatter{}
     
@@ -37,6 +43,7 @@
     \input{background}
     \input{methodology}
     \input{experiments}
+    \input{discussion}
     \input{conclusion}
     \backmatter{}
     \printbibliography

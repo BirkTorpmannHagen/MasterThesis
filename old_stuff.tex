@@ -203,3 +203,42 @@ This chapter will cover in further detail how the experiments were conducted and
 
           In conventional deep learning pipelines, the value of the loss function used to compute, and as a consequence the gradient, is computed from some sample of the training data. This is known as \glsfirst{erm}. The size of this sample gives rise to three different families of optimization techniques: stochastic gradient descent, which uses one training sample at a time to approximate the gradient, mini-batch gradient descent, which uses a few of the available training samples, and batch gradient descent, which uses the entire training set. This is determined by the Dataloader. Mini-batches are used in most modern deep learning pipelines, and as such this will be assumed for the rest of this section.
           Instead, the training procedure loops through the entire training set some number of times, computes the loss and the gradient, minibatch or batch, and finally update the weights according to the optimizer and scheduler by backpropagating the gradient of the loss function with respect to the relevant weights.
+          
+          
+% OLD SUMMARY
+\cref{background} provided an overview of deep learning, segmentation, and delved further into why such systems so readily fail to generalize, starting from first principles and analyzing the shortcomings of \gls{erm}. This was then connected to recent analyses of generalizability failure, including the notion of underspecification and shortcut learning. Finally, known methods of increasing generalization as presented in EndoCV2021 and elsewhere in the literature were then discussed and analysed with respect to the established theory. 
+
+This was then in turn used to inform the development of the methods discussed in \cref{methods}, including a novel training paradigm, augmentation technique, model architecture and ensemble models. Each of these methods were also discussed with respect to the theory explored in \cref{background}.
+Several experiments were then conducted in \cref{experiments} in order to ascertain the impact of the proposed methods:
+
+First, baseline generalizability metric were collected for five separate models. The findings supported the notion that larger models are more prone to generalizability failure, as demonstrated by the significant gap between the Unet and the TriUnet. The dual-decoder DeepLabV3+ exhibited considerably lower generalizability than the regular DeepLabV3+. This suggests that underspecification may not be the principle cause of generalizability failure across these two models. As will be discussed in the next section, this merits further study.
+
+In the next experiment, data augmentation was shown to increase generalizability by a considerable margin. Synthetic augmentation via inpainting was shown to reduce generalizability, but this finding was deemed inconclusive due to the relatively low performance of the inpainter. 
+
+The impact of consistency training was then tested and compared to regular data augmentation and no augmentation. The results show that consistency training outperforms regular data augmentation by a considerable margin on the most difficult of the three \gls{ood} datasets. The impact on the remaining datasets was somewhat lower, however, with the difference being statistically significant only on one of them. 
+
+Finally, predictors trained according to the best methods as identified in the previous experiments were then combined into ensembles. The results demonstrated the generalizability of ensemble-based methods and corroborated the theoretical analyses discussed in \cref{background} that this can in large part attributed to the fact that ensembles mitigate underspecification. 
+
+The results from this experiment was then discussed in \cref{discussion}. Limitations of the experiments were noted, along with their practical impacts and possible directions of further study and means of improvement of the methods proposed in this thesis. 
+
+\begin{align}
+L_s &= \frac{1}{\sum \hat{y} \cup \hat{a}} \sum \hat{y}\ominus y \\
+L_c &= \frac{1}{\sum \hat{y} \cup \hat{a}}\sum  [\hat{y}\ominus y\ominus \hat{a} \ominus a  ]\\
+L_{c+s} &= L_c(Y, A) + L_s(Y)\\
+&=\frac{1}{\sum \hat{y} \cup \hat{a}} \Bigg[\sum  \{\hat{y}\ominus y\ominus \hat{a} \ominus a  \} + \sum \{\hat{y}\ominus y\}  \Bigg]\\
+\begin{split}
+&=\frac{1}{\sum \hat{y} \cup \hat{a}} \Bigg[\sum \{\hat{y}\ominus y\} + \sum  \{\hat{a}\ominus a\}\\
+&-\sum \{\setminus y\cap \hat{y} \cap a \cap \hat{a}\}\cup\{y\cap \setminus \hat{y} \cap a \cap \hat{a}\}\cup \\ 
+&\{y\cap \hat{y} \cap \setminus a \cap \hat{a}\}\cup\{y\cap \hat{y} \cap a \cap \setminus \hat{a}\}\\
+&-\sum\{\setminus y\cap \hat{y} \cap \setminus a \cap \hat{a}\} \cup\{y\cap \setminus \hat{y} \cap \setminus a \cap \hat{a}\} -\\
+&\cup\{\setminus y\cap \hat{y} \cap a \cap \setminus\hat{a}\}\cup\{y\cap \setminus \hat{y} \cap a \cap \setminus \hat{a}\} \\ 
+&+\sum \{\hat{y}\ominus y\}   \Bigg]\\
+\end{split}\\
+\begin{split}
+&=2L_s(y, \hat{y})+L_s(a, \hat{a}) +\frac{1}{\sum \hat{y} \cup \hat{a}} \Bigg[\\
+&-\sum \{\setminus y\cap \hat{y} \cap a \cap \hat{a}\}\cup\{y\cap \setminus \hat{y} \cap a \cap \hat{a}\}\cup \\ 
+&\{y\cap \hat{y} \cap \setminus a \cap \hat{a}\}\cup\{y\cap \hat{y} \cap a \cap \setminus \hat{a}\}\\
+&-\sum\{\setminus y\cap \hat{y} \cap \setminus a \cap \hat{a}\} \cup\{y\cap \setminus \hat{y} \cap \setminus a \cap \hat{a}\} -\\
+&\cup\{\setminus y\cap \hat{y} \cap a \cap \setminus\hat{a}\}\cup\{y\cap \setminus \hat{y} \cap a \cap \setminus \hat{a}\}   \Bigg]
+\end{split} \label{loss_proof}
+\end{align}
