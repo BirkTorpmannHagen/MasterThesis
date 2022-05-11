@@ -242,3 +242,50 @@ L_{c+s} &= L_c(Y, A) + L_s(Y)\\
 &\cup\{\setminus y\cap \hat{y} \cap a \cap \setminus\hat{a}\}\cup\{y\cap \setminus \hat{y} \cap a \cap \setminus \hat{a}\}   \Bigg]
 \end{split} \label{loss_proof}
 \end{align}
+
+\begin{figure}[h]
+    \centering
+    \hspace*{-1.9cm}\includegraphics[width=1.2\linewidth]{illustrations/ensemble_variance_relationship_statistical.png}
+    \caption[Relationship between ensemble improvements and constituents' performance variability]{Plot showing the correlation between the improvements to \gls{iou} with respect to the mean \gls{iou} of the constituent predictors, versus the variability in the performance of the constituent predictors. The Pearson Correlation Coefficient and corresponding p-value for each dataset is shown in the title of each subplot.}
+    \label{fig:ensemble_var}
+\end{figure}
+
+The results do not appear to completely corroborate this analysis of why ensembles increase generalization, however. Though a Pearson correlation test reports positive correlations (p>0.99) on two of the datasets - CVC-ClinicDB and Etis-LaribDB - the relationship is nonetheless fairly spurious. This is likely to be due to the the nature of the landscape of the Bayesian posterior, as illustrated in \Cref{fig:bayesian_generalization} in \Cref{fig:bayesian_generalization}. Moreover, performance variability may not be an accurate representation of the degree to which the ensembles' constituent predictors encode different features. This will be discussed further in \Cref{discussion}. 
+
+    \item Ensembles models increase generalization. The relationship between ensemble models and underspecification as quantified in this thesis is also somewhat more spurious than expected.
+    
+    However, the notion that this improvement arises as a result of mitigating underspecification was shown to not be as strong as the analyses in the literature often suggest. As shown in \Cref{fig:ensemble_var}, the relationship between improvements afforded by the use of ensembles and the degree of underspecification of the constituent model(s) is spurious. 
+    
+        % The improvements due to the use of ensembles was, however, comparatively minor. As discussed in previous sections, data augmentation and consistency training proved to be more effective by significant margins. On the Etis-LaribDB dataset, conventional data augmentation provided improvements to generalization ranging between 10\% and 20\%, and consistency training between 20\% and 26\% when averaging across models. Ensemble models, on the other hand,  ralization by a minor amount and at best facilitating a 13\% increase on the TriUnet.  The potential gains from ensemble models is nevertheless significant, but it should be noted that the ensembles' cost of training time, time required for inference, and the comparatively high memory requirements needs to be weighted against the benefits. It may, for instance, be the case that the computational resources spent training multiple models for use in an ensemble would be better spent tuning the augmentation strategy, which as established has a more considerable effect. 
+        
+\section{Future Work}
+There are a myriad of promising directions for further work. These are detailed in \Cref{discussion} and can be summarized as follows:
+
+There are several ways to improve Consistency Training. One may for instance modify the segmentation inconsistency loss as outlined in \Cref{new_closs}. It is also possible to incorporate the notion of consistency in more advanced pipelines, such as through denoising networks as outlined in \Cref{denoising}. Adversarial sampling of perturbations or otherwise modifying the perturbation model may also have merit.  
+
+Further investigating the effect of multiple-decoder models may also prove insightful, in particular as a countermeasure to underspecification. Analyzing the latent representations and the differences that these decoders induce may also provide a better understanding of what the encoders actually learn, and corroborate the hypothesis made in \Cref{models} that they learn dataset- and thus task-invariant features. 
+
+Repeating the experiments performed in this thesis without pretraining may also be interesting. There may for instance be a relationship between pretraining and the aforementioned tendency of encoders to learn task-independent features which such experiments would highlight.  
+
+As this thesis merely explored the impacts of model architectures, data augmentation and ensemble models on a surface level, there is naturally space for more in-depth exploration of the relationships suggested by the findings in \Cref{experiments}. In particular, a more in-depth analysis of the impact of data augmentation is warranted, in particular in regards to the relative impacts thereof in comparison to other methods. A meta-analysis of the findings in EndoCV2021 wherein the same augmentation method is kept across all submitted methods may for instance be a useful point of further study towards developing more robust experimental methods to evaluate generalization. 
+
+
+% \section{Summary}
+% The goal of this work has been to develop novel methods of increasing the generalizability of deep learning models, as well as to further the understanding of the relative impacts of more conventional components of the deep learning pipeline.
+
+% Several methods were proposed to this end, namely DD-DeepLabV3+, Consistency Training, generative polyp inpainting, and the use of ensembles. Among these methods, Consistency Training had the most significant impact and appears to be the most promising with regards to further development. 
+
+% There are a multitude of improvements that could be made for every tested method, and there is much to be gained from more in-depth analysis and experimentation with regards to the relative impacts of all tested methods. 
+
+% Though generalizability remains an open and multifaceted problem, there are evidently multiple promising directions of further study which may yet prove to alleviate generalization failure or at the very least facilitate a deeper understanding of generalizability. In particular, Consistency Training, and in general notion of perturbation consistency, exhibits significant potential towards mitigating generalization failure.
+
+    
+    
+    % \subsubsection{Generalizability Gap}
+    % Solely considering \glspl{iou} may be misleading, however ~\cite{metric_weakness}. A predictor which exhibits \glspl{iou} of 0.7 regardless of the dataset should for instance be considered more generalizable than one which scores IoUs of 0.9 or higher on \gls{iid} datasets but 0.7 on \gls{ood} datasets. Though considering the \glspl{iou} themselves is obviously for the best when considering more practical perspectives - i.e., how the system would fare in clinical deployment - a more informative measure of the ability of a given predictor to generalize is the difference between \gls{ood} and \gls{ind} performance as a percentage of its \gls{ind} performance. In the context of segmentation, this can be quantified via \gls{iou} as:
+
+    % \begin{equation}
+    %     \Delta\%IoU = 100\frac{IoU_{ind}-IoU_{ood}}{IoU_{ind}}
+    % \end{equation}
+
+    % This has the advantage of facilitating more direct comparisons of generalizability even if the models in question exhibit fairly different performance in terms of \gls{iou} also in \gls{ind} settings. 

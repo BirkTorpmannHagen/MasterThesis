@@ -10,9 +10,9 @@
 \usepackage{blindtext}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
-\setitemize{labelindent=1.5em,labelsep=0cm,leftmargin=*}
+\usepackage{pdfpages}
+\setitemize{labelindent=1.5em,labelsep=0.2cm,leftmargin=*}
 \usepackage[acronym]{glossaries}
-\input{glossaries}
 \setlength{\parindent}{0em}
 \setlength{\parskip}{1em}
 \title{On the Generalizability of Deep Learning-based Medical Image Segmentation Methods}        %% ... or whatever
@@ -35,10 +35,14 @@
     \listoftables{}
 
     \chapter*{Acknowledgments}
-    (...)
+    \addcontentsline{toc}{chapter}{Acknowledgements}
 
-    \mainmatter{}
+    I would like to thank my supervisors Michael Riegler, Vajira Thambawita, Pål Halvorsen and Kyrre Glette for their insightful feedback and for providing me with such an interesting topic of research. I would also like to thank my fellow students in room 4104 for entertaining my many technical discussions. Finally, I would like to thank my family for their support and interest in my work.
     
+    The research presented in this paper has benefited from the Experimental Infrastructure for Exploration of Exascale Computing (eX3), which is financially supported by the Research Council of Norway under contract 270053.
+    \mainmatter{}   
+    \input{glossaries}
+    % \printglossary[type=\acronymtype] 
     \input{introduction}
     \input{background}
     \input{methodology}
