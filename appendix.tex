@@ -78,21 +78,28 @@ All relevant code and data can be found on the GitHub repository: https://github
     \end{table}
     
 % Ensembles
-\begin{table}[htb]
+\begin{table}[]
     \centering
-    \begin{tabularx}{\linewidth}{lXr}
-        \toprule
-        Dataset & U-Statistic & p-Value \\
-        \midrule
-        Kvasir-SEG & 1150.0 & 0.00074 \\ 
-        Etis-LaribDB & 742.0 & 0.0 \\ 
-        EndoCV2020 & 1265.0 & 0.00523 \\ 
-        CVC-ClinicDB & 1319.0 & 0.01163 \\ 
-        \bottomrule
-    \end{tabularx}
-    \caption[Mann-Whitney U-test results ensembles]{Results from Mann-Whitney U-test for each dataset when comparing the average \glspl{iou} across ensembles consisting of predictors trained with Consistency Training versus predictors trained with conventional data augmentation. Precision limited to 5 significant figures}
-    \label{tab:ttest_avgs_ensemble}
+  \begin{tabularx}{\linewidth}{lXXXX}
+    \toprule
+    Training method & CVC-ClinicDB & EndoCV2020 & Etis-LaribDB& Kvasir-SEG \\
+    \midrule
+    No Augmentation             & 0.000 & 0.000 & 0.006 & 0.000 \\ 
+    Conventional Augmentation   & 0.000 & 0.000 & 0.003 & 0.000 \\ 
+    Consistency Training        & 0.000 & 0.000 & 0.003 & 0.000 \\
+    \bottomrule
+\end{tabularx}
+    \caption{p-values from a Mann-Whitney U-test for each dataset and training method when comparing the mean \gls{iou} of ensembles vs. the mean \gls{iou} across its constituent models.}
+    \label{tab:ensemble_v_singular}
 \end{table}
+
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{illustrations/ensemble_relative_pvals.eps}
+    \caption[Mann-Whitney U-test results ensembles]{Results from Mann-Whitney U-test for each dataset when comparing the average \glspl{iou} across models for the three training methods. Precision limited to 5 significant figures}
+    \label{fig:ttest_training_methods_ensembles}
+\end{figure}
     
 
 \newpage
@@ -110,7 +117,6 @@ All relevant code and data can be found on the GitHub repository: https://github
 \addcontentsline{toc}{chapter}{Appendix D: Paper submitted to NeurIPS2022}
 \setcounter{chapter}{8}
 \setcounter{section}{0}
-\section*{Paper submitted to NeurIPS2022}
 \setcounter{chapter}{0}
 \setcounter{section}{0} 
 \includepdf[pages=-]{2022_NIPS_paper_Birk.pdf} 

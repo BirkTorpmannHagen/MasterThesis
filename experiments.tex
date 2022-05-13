@@ -45,7 +45,7 @@ The following sections will further detail the experimental setup, including the
     
     \subsubsection{Mean Intersection-over-Union}
     
-    The most natural way to quantify generalizability is to simply evaluate the predictors on in-distribution and out-of-distribution data and then consider the differences. There are, naturally, several performance measures that can be used to this end in the context of segmentation, the most natural of which being \gls{iou} or the Dice coefficient, which as discussed in Chapter \ref{background} are equivalent. In this thesis, \gls{iou} was used. To reiterate, IoU is defined as follows:
+    The most natural way to quantify generalizability is to simply evaluate the predictors on in-distribution and out-of-distribution data and then consider the differences. There are, naturally, several performance measures that can be used to this end in the context of segmentation, the most natural of which being \gls{iou} or the Dice coefficient, which as discussed in \Cref{background} are equivalent. In this thesis, \gls{iou} was used. To reiterate, IoU is defined as follows:
     Let \(y\) be the segmentation label, and \(\hat{y}=f(x)\) be the segmentation prediction given the model \(f\) and an input image x. The \gls{iou} can then be expressed as: 
     \begin{equation*}
         IoU(y, \hat{y}) = \frac{\sum \{y=\hat{y}\} }{\sum \{y=1\} \cup \{\hat{y}=1\}\}}
@@ -67,7 +67,7 @@ The following sections will further detail the experimental setup, including the
      Though the mean generalizability gap across these predictors is the primary indication of generalizability of the pipeline, this variability is also a salient factor to consider as it serves to quantify the degree to which a given pipeline is underspecified. The more underspecified a pipeline is, the higher the variability of the performance and the higher the \gls{cs} of the \glspl{iou}.  
 
 \subsection{Models} \label{model_choices}
-In order to evaluate the impact of the methods presented in~\Cref{methods} sufficiently, they need to be tested across a range of different models. This ensures that the effects induced my the methods are not model-dependent, and in addition provides an opportunity to investigate the innate ability of specific models to learn generalizable features. To this end, a number of popular models were selected, intended to serve as a somewhat representative sample of what may be considered as "typical" deep learning pipelines. These models include DeepLabV3+ ~\cite{deeplab}, \gls{fpn} ~\cite{fpn}, UNet ~\cite{unet}, Tri-Unet ~\cite{divergentnets}, and the dual-decoder DeepLabV3+ as introduced in Chapter \ref{methods}. 
+In order to evaluate the impact of the methods presented in~\Cref{methods} sufficiently, they need to be tested across a range of different models. This ensures that the effects induced my the methods are not model-dependent, and in addition provides an opportunity to investigate the innate ability of specific models to learn generalizable features. To this end, a number of popular models were selected, intended to serve as a somewhat representative sample of what may be considered as "typical" deep learning pipelines. These models include DeepLabV3+ ~\cite{deeplab}, \gls{fpn} ~\cite{fpn}, UNet ~\cite{unet}, Tri-Unet ~\cite{divergentnets}, and the dual-decoder DeepLabV3+ as introduced in \Cref{methods}. 
 
 The models were implemented in pytorch using the segmentation-models-pytorch (SMP) library ~\cite{smp}, using the library's default values.~\Cref{tab:baselines} shows the architecture type and parameter counts of the respective models. 
   \begin{table}[htb]
@@ -308,7 +308,7 @@ As discussed in~\Cref{cons_vs_aug}, this is to be expected. Though data augmenta
 
 \section{Ensembles}\label{ensembles}
 
-Finally, the impact of combining multiple predictors into an ensemble was investigated. Two types of ensembles were investigated: ensembles consisting of five instances of a single type of model and ensembles consisting of all five models. The generalizability of these ensembles were then compared to one another and with the average performance of their constituent predictors. For completeness, ensembles consisting of predictors trained with regular data augmentation were also tested.   
+Finally, the impact of combining multiple predictors into an ensemble was investigated. Two types of ensembles were investigated: ensembles consisting of five instances of a single type of model and ensembles consisting of all five models. The generalizability of these ensembles were then compared to one another and with the average performance of their constituent predictors. For completeness, ensembles consisting of predictors trained with and without regular data augmentation were also tested.
 
 To ascertain the generalizability of the ensembles to statistical significance, ten ensembles of each kind were implemented. For the multi-model ensembles, each of the ten ensembles was built from unique predictors trained in~\Cref{consistency_training}.  For the single-model ensembles, five predictors were randomly selected from the ten that were trained in~\Cref{consistency_training}. As will be further discussed in~\Cref{discussion}, these ensembles too should have been built from unique predictors, however due to limits of computational resources this was not possible. 
 
@@ -318,7 +318,7 @@ To ascertain the generalizability of the ensembles to statistical significance, 
 \toprule
 Ensemble  & CVC-ClinicDB & EndoCV 2020 & Etis-LaribDB & Kvasir-Seg \\
 \midrule
-\multicolumn{5}{c}{Consistency-Trained}\\
+\multicolumn{5}{c}{\textbf{Consistency-Trained}}\\
 \midrule
 DD-DeepLabV3+   & 0.748 &0.684 &0.492 &0.863 \\
 DeepLabV3+      & \textbf{0.751} & 0.683 & \textbf{0.523} &0.859 \\
@@ -327,7 +327,7 @@ Unet            & 0.744 & 0.694 &0.494 & 0.868 \\
 TriUnet         & 0.723 & \textbf{0.715} & 0.468 & 0.859 \\
 MultiModel      & 0.747 & 0.693 &0.484 &0.867 \\
 \midrule
-\multicolumn{5}{c}{Conventional Augmentation}\\
+\multicolumn{5}{c}{\textbf{Conventional Augmentation}}\\
 \midrule
 DD-DeepLabV3+   & 0.749 & 0.684 & 0.495 & 0.865 \\
 DeepLab         & 0.749 & 0.691 & 0.486 & 0.863 \\
@@ -335,44 +335,65 @@ FPN             & 0.732 & 0.686 & 0.454 & \textbf{0.871} \\
 TriUnet         & 0.720 & 0.692 & 0.451 & 0.861 \\
 Unet            & 0.734 & 0.675 & 0.437 & 0.869 \\
 MultiModel      & 0.740 & 0.687 & 0.462 & 0.867 \\
+\midrule
+\multicolumn{5}{c}{\textbf{No Augmentation}}\\
+\midrule
+DD-DeepLabV3+  & 0.690 & 0.605 & 0.419 & 0.840 \\ 
+DeepLab        & 0.695 & 0.611 & 0.426 & 0.833 \\ 
+FPN            & 0.690 & 0.610 & 0.416 & 0.837 \\ 
+TriUnet        & 0.651 & 0.588 & 0.311 & 0.841 \\ 
+Unet           & 0.696 & 0.604 & 0.409 & 0.841 \\
+MultiModel     & 0.694 & 0.612 & 0.414 & 0.846 \\
 \bottomrule
 \end{tabularx}
-    \caption[IoUs across ensemble models and datasets. ]{IoUs across ensemble models and datasets. Best ensembles for each dataset are highlighted in bold.}
+    \caption[IoUs across ensemble models and datasets. ]{IoUs across ensemble models, datasets, and training methods. Best ensembles for each dataset are highlighted in bold.}
     \label{tab:ensembles}
 \end{table}
 
 \begin{figure}[htb]
     \centering
     \includegraphics[width=\linewidth]{illustrations/improvements_due_to_ensembles.png}
-    \caption[Improvements due to Ensembles]{Boxplot showing the improvement due to ensembles as a percentage of the mean \gls{iou} across their constituent models}
+    \caption[Improvements due to Ensembles]{Boxplot showing the improvement due to ensembles as a percentage of the mean \gls{iou} across their constituent models, when trained with Consistency Training}
     \label{fig:ensemble_improvements}
 \end{figure}
-The \gls{iou}-scores for the ensemble models are shown in~\Cref{tab:ensembles}. The ensembles consisting of predictors trained with Consistency Training exhibited increased generalization on EndoCV2020 and Etis-LaribDB by a statistically significant margin (p<0.01). The differences between the two predictor training types was statistically insignificant for the CVC-ClinicDB dataset. Interestingly, the ensembles trained with standard augmentation exhibit higher \gls{ind} performance by a statistically significant margin (p<0.01), though it should be noted that the difference is negligible. All p-values can be found in~\Cref{tab:ttest_avgs_ensemble} in Appendix A. 
+The \gls{iou}-scores for the ensemble models are shown in~\Cref{tab:ensembles}. Averaging across models, the ensembles exhibited increased mean \glspl{iou} on all of the \gls{ood} datasets when compared to the mean \gls{iou} of the constituent models (p<0.01). See \Cref{tab:ensemble_v_singular} in Appendix A for p-values. This corroborates the findings in other works that ensembles contribute to increased generalization~\cite{endoensemble, divergentnets}. 
 
-To analyze the impact of ensembles with respect to single models, one can consider the relative performance improvements between them. To this end, the performance of the ensembles trained with Consistency Training was compared to the mean performance of its constituent models. The relative improvements as a percentage of the constituent predictor performance is shown in~\Cref{fig:ensemble_improvements}. Holistically, the results show that ensembles increase generalization. 
+The relative improvements were comparable across all three training methods, with the average change in IoU as a percentage of the mean \gls{iou} of the constituent models being 2.026\%, 3.081\% and 2.351\% respectively for no augmentation, conventional augmentation, and consistency training . This is shown in \Cref{fig:ensemble_improvements_across_training_methods}. 
 
-This, as mentioned in~\Cref{background}, is often attributed to the fact that ensembles mitigate underspecification. Specifically, they constitute a form of Bayesian marginalization, and should thus in theory be able to leverage the variability of its constituent predictors in order to increase generalization.
-
-To investigate the veracity of this line of reasoning, one can consider the relationship between the improvements to generalization due to the use of ensembles versus the degree of underspecification for the pipelines that generate the constituent models. This is shown in~\Cref{fig:ensemble_var}. 
-\begin{figure}[htb]
+\begin{figure}
     \centering
-    \includegraphics[width=0.75\linewidth]{illustrations/ensembles_underspecification.png}
-    \caption[Relationship between ensemble improvements and underspecification]{Plot showing the relationship between predictor-wise performance variability and improvements in generalization due ensembles. The error-bars show the 95\% confidence intervals for the improvement. The more under specified the pipeline is as quantified by performance variability, the greater improvements are made through the use of ensembles}
+    \includegraphics[width=\linewidth]{illustrations/ensemble_improvements.eps}
+    \caption[Ensemble improvements across training methods]{Ensemble improvements across training methods and datasets as a percentage of the mean \gls{iou} of the corresponding model architecture}
+    \label{fig:ensemble_improvements_across_training_methods}
+\end{figure}
+
+The difference between the three ensemble training methods was statistically significant on all datasets (p<0.01), except CVC-ClinicDB, wherein the difference between the ensembles trained with Consistency Training and the ensembles trained with conventional data augmentation had a p-value of 0.012. The p-values can be found in~\Cref{fig:ttest_training_methods_ensembles} in Appendix A. 
+
+To further analyze the impact of ensembles with respect to single models, one can consider the relative performance improvements between them. To this end, the performance of the ensembles trained with Consistency Training was compared to the mean performance of its constituent predictors across all tested model architectures. The relative improvements as a percentage of the constituent predictor performance are shown in~\Cref{fig:ensemble_improvements}. The results show that ensembles increase generalization. However, this is not always the case; perhaps counter-intuitively, the use of ensembles may in certain cases reduce generalization. This occurred on some of the samples of the DD-DeepLabV3+ and FPN-ensembles on Etis-LaribDB, for instance. This may happen when there are high degrees of disagreement among the constituent predictors, in which case there may not be sufficient consensus to fully segment the polyp. Many implementations of ensembles, therein the implementation used in this thesis, require at least a 50\% consensus in order for a given pixel to be classified positively, and thus if this is not achieved, the ensemble may perform worse than any one of the constituent predictors. 
+
+The tendency of ensembles to increase generalization is as mentioned in~\Cref{background} often attributed to the fact that the use of ensembles to some extent mitigate underspecification. Specifically, they constitute a form of Bayesian marginalization, and should thus in theory be able to leverage the variability of its constituent predictors in order to increase generalization. This assumes that predictions with high consensus are the most generalizable, though as shown in \Cref{fig:bayesian_generalization} this may not be the case. 
+
+To further investigate the veracity of this line of reasoning, one can consider the relationship between the improvements to generalization due to the use of ensembles versus the degree to which the pipelines that generate the constituent predictors are underspecified. This is shown in~\Cref{fig:ensemble_var}. 
+\begin{figure}[!hbt]
+    \centering
+    \includegraphics[width=0.9\linewidth]{illustrations/ensembles_underspecification.png}
+    \caption[Relationship between ensemble improvements and underspecification]{Plot showing the relationship between predictor-wise performance variability and improvements in generalization due ensembles trained with consistency training. The error-bars show the 99\% confidence intervals for the improvement. The more under specified the pipeline is as quantified by performance variability, the greater improvements are made through the use of ensembles. }
     \label{fig:ensemble_var}
 \end{figure}
 
 There appears to be a positive relationship between the two, which corroborates the aforementioned interpretation. It should be noted, however, that the relatively low sample size and consequent potential errors in the estimate for the \gls{cs} means that this relationship cannot be determined with statistical certainty. This will be discussed further in~\Cref{discussion}. 
 
-In~\Cref{fig:ensemble_var}, it should also be noted that the \gls{cs} values are computed based on all ten samples, as it is supposed to represent the degree to which the pipeline is underspecified, and not the variability of the constituent predictors for each ensemble instance. If one instead considers the variability in performance of the constituent predictors - which it can be argued is a better representation of the diversity of features learned by the ensembles. This is shown in~\Cref{fig:ensemble_var_stat}.
+In~\Cref{fig:ensemble_var}, it should also be noted that the \gls{cs} values are computed based on all ten samples, as it is supposed to represent the degree to which the pipeline itself is underspecified, and not the variability of the constituent predictors for each ensemble instance. One can instead consider the variability in performance of the constituent predictors, which it can be argued is a better representation of the diversity of features learned by the ensembles. This is shown in~\Cref{fig:ensemble_var_stat}. The p-values after a Spearman's \(\rho\) test are shown above each subplot. 
 
-\begin{figure}[htb]
+\begin{figure}[!hb]
     \centering
-    \hspace*{-1.9cm}\includegraphics[width=1.2\linewidth]{illustrations/ensemble_variance_relationship_statistical.png}
-     \caption[Relationship between ensemble improvements and constituents' performance variability]{Plot showing the correlation between the improvements to \gls{iou} with respect to the mean \gls{iou} of the constituent predictors, versus the variability in the performance of the constituent predictors. The Pearson Correlation Coefficient and corresponding p-value for each dataset is shown in the title of each subplot.}
+    \hspace*{-1.9cm}\includegraphics[width=1.2\linewidth]{illustrations/ensemble_variance_relationship_statistical.eps}
+     \caption[Relationship between ensemble improvements and constituents' performance variability]{Plot showing the correlation between the improvements to \gls{iou} with respect to the mean \gls{iou} of the constituent predictors, versus the variability in the performance of the constituent predictors. The Spearman Correlation Coefficient and corresponding p-value for each dataset is shown in the title of each subplot.}
     \label{fig:ensemble_var_stat}
 \end{figure}
 
-The \gls{cs} values are in this case based on five predictors - half as many as in~\Cref{fig:ensemble_improvements} - and there are consequently greater possible margins for measurement error. Nevertheless, there appears to be a positive relationship between predictor-wise performance variability and the performance improvements with respect to the mean performance of the constituents for two of the three \gls{ood} datasets. The relationships do, however, appear somewhat spurious, and the p-values shown above each subplot may be misleading, as the the relationships do not appear to be particularly linear. 
+The \gls{cs} values are in this case based on five predictors - half as many as in~\Cref{fig:ensemble_improvements}, thus there may be a larger degree of measurement error along the x-axis. Nevertheless, there overall appears to be a generally positive relationship between the ensemble constituent's \gls{cs} of \plgls{iou} and the relative improvements in mean \gls{iou} due to ensembles. When the ensembles are trained without augmentation, this relationship is statistically significant for all datasets. When trained with conventional augmenation, . When trained with consistency training, it is statistically significant for Etis-LaribDB and CVC-ClinicDB. The weak correlation in the remaining datasets may be attributed to the fact that the models generally perform with low degrees of variability on them, as shown in \Cref{fig:consistency_cstd}. This low variability suggests that the predictors all return fairly similar segmentations, which also explains the comparatively low impact of the ensembles on these datasets.  
+
 
 \section{Summary}
 This chapter detailed the experiments performed to evaluate the methods presented in~\Cref{methods} along with the effects of model architecture, augmentation, and ensembles on generalizability. The results can be summarized as follows:
@@ -384,4 +405,4 @@ This chapter detailed the experiments performed to evaluate the methods presente
     \item Ensembles models increased generalization. The relationship between this increase and underspecification was investigated, and though there appeared to be a positive correlation, this was not conclusively proven.
 \end{itemize}
 
-These findings will be discussed in further detail in~\Cref{discussion}. 
+These findings will be discussed in further detail in~\Cref{discussion} along with their impact, and their limits. 
