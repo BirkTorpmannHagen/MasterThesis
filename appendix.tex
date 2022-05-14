@@ -1,9 +1,8 @@
-\chapter*{Appendix A: Code Access} \label{code_data}
-\addcontentsline{toc}{chapter}{Appendix A}
+\appendix
+\chapter{Code Access} \label{code_data}
 All relevant code and data can be found on the GitHub repository: https://github.com/BirkTorpmannHagen/Master
 
-\chapter*{Appendix B: p-values}\label{p-values}
-\addcontentsline{toc}{chapter}{Appendix B: p-values}
+\chapter{p-values}\label{p-values}
 
 \begin{figure}[hbt]
     \centering
@@ -34,10 +33,10 @@ All relevant code and data can be found on the GitHub repository: https://github
         \toprule
         Dataset & U-Statistic & p-Value \\
         \midrule
-            Kvasir-SEG & 763.0, p=0.15972 \\ 
-            Etis-LaribDB & 545.0, p=0.00163 \\ 
-            EndoCV2020 & 851.0, p=0.4169 \\ 
-            CVC-ClinicDB & 520.0, p=0.00077 \\ 
+            Kvasir-SEG & 763.0 & 0.15972 \\ 
+            Etis-LaribDB & 545.0 & 0.00163 \\ 
+            EndoCV2020 & 851.0 & 0.4169 \\ 
+            CVC-ClinicDB & 520.0 & 0.00077 \\ 
         \bottomrule
     \end{tabularx}
     \caption[Mann-Whitney U-test results inpainter averaged across models]{Results from Mann-Whitney U-test for each dataset when comparing the average \glspl{iou} of all models trained with conventional data augmentation versus models trained with the inpainter as a component of the data augmentation strategy}
@@ -46,6 +45,22 @@ All relevant code and data can be found on the GitHub repository: https://github
 
 % consistency training
 \begin{table}[htb]
+    \centering
+    \begin{tabularx}{\linewidth}{lXr}
+            \toprule
+            Dataset & U-Statistic & p-Value \\
+            \midrule
+            Kvasir-SEG & 1066.0 & 0.10293 \\
+            Etis-LaribDB & 624.0 & 0.00001\\
+            CVC-ClinicDB & 751.0& 0.00029 \\
+            EndoCV2020 & 774.0 & 0.00052    \\
+            \bottomrule
+        \end{tabularx}
+        \caption[Mann-Whitney U-test results consistency training averaged across models]{Results from a Mann-Whitney U-test for each dataset when comparing the average \glspl{iou} across models for Consistency Training vs conventional data augmentation}
+        \label{tab:ttest_avgs_consistency}
+    \end{table}
+    
+    \begin{table}[htb]
     \centering
     \begin{tabularx}{\linewidth}{lXXXX}
     \toprule
@@ -61,31 +76,16 @@ All relevant code and data can be found on the GitHub repository: https://github
     \caption[T-test results consistency training]{p-values for each model and dataset between the IoUs of the given models trained with consistency training versus when trained with data augmentaion}
     \label{tab:ttest_per_dataset_consistency}
 \end{table}
-\begin{table}[htb]
-    \centering
-    \begin{tabularx}{\linewidth}{lXr}
-            \toprule
-            Dataset & U-Statistic & p-Value \\
-            \midrule
-            Kvasir-SEG & 1066.0 & 0.10293 \\
-            Etis-LaribDB & 624.0 & 0.00001\\
-            CVC-ClinicDB & 751.0& p=0.00029 \\
-            EndoCV2020 & 774.0 & 0.00052    \\
-            \bottomrule
-        \end{tabularx}
-        \caption[Mann-Whitney U-test results consistency training averaged across models]{Results from a Mann-Whitney U-test for each dataset when comparing the average \glspl{iou} across models for Consistency Training vs conventional data augmentation}
-        \label{tab:ttest_avgs_consistency}
-    \end{table}
     
 % Ensembles
-\begin{table}[]
+\begin{table}[htb]
     \centering
   \begin{tabularx}{\linewidth}{lXXXX}
     \toprule
     Training method & CVC-ClinicDB & EndoCV2020 & Etis-LaribDB& Kvasir-SEG \\
     \midrule
     No Augmentation             & 0.000 & 0.000 & 0.006 & 0.000 \\ 
-    Conventional Augmentation   & 0.000 & 0.000 & 0.003 & 0.000 \\ 
+    Conventional Augmentation   & 0.000 & 0.000 & 0.001 & 0.000 \\ 
     Consistency Training        & 0.000 & 0.000 & 0.003 & 0.000 \\
     \bottomrule
 \end{tabularx}
@@ -97,15 +97,20 @@ All relevant code and data can be found on the GitHub repository: https://github
 \begin{figure}[htb]
     \centering
     \includegraphics[width=\linewidth]{illustrations/ensemble_relative_pvals.eps}
-    \caption[Mann-Whitney U-test results ensembles]{Results from Mann-Whitney U-test for each dataset when comparing the average \glspl{iou} across models for the three training methods. Precision limited to 5 significant figures}
+    \caption[Mann-Whitney U-test results ensembles]{Results from Mann-Whitney U-test for each dataset when comparing the average \glspl{iou} across models for the three training methods. }
     \label{fig:ttest_training_methods_ensembles}
+\end{figure}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{illustrations/ensemble_improvement_pvals.eps}
+    \caption[Ensemble Training Method Improvement Comparison]{Results from an independent-sample two-sided t-test when comparing the relative improvements across across models for the three training methods.}
+    \label{fig:ensemble_improvement_tmethod}
 \end{figure}
     
 
 \newpage
-\chapter*{Appendix C: Non-weighted Consistency Training}\label{non_weighted_ctraining}
-\addcontentsline{toc}{chapter}{Appendix C: Non-weighted Consistency Training}
-
+\chapter{ Non-weighted Consistency Training}\label{non_weighted_ctraining}
 \begin{figure}[htb]
     \centering
     \includegraphics[width=\linewidth]{illustrations/artefacts.png}
@@ -113,8 +118,7 @@ All relevant code and data can be found on the GitHub repository: https://github
     \label{fig:non_weighted_ctraining}
 \end{figure}
 
-\chapter*{Appendix D: Paper submitted to NeurIPS2022} \label{Paper}
-\addcontentsline{toc}{chapter}{Appendix D: Paper submitted to NeurIPS2022}
+\chapter{Paper submitted to NeurIPS2022} \label{Paper}
 \setcounter{chapter}{8}
 \setcounter{section}{0}
 \setcounter{chapter}{0}

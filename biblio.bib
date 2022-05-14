@@ -936,6 +936,14 @@ abstract = {Semantic segmentation is a challenging task in computer vision syste
   url={http://ceur-ws.org/Vol-2886/paper4.pdf}
 }
 
+@inproceedings{endocv2021_gru,
+  title={An Embedded Recurrent Neural Network-based Model for Endoscopic Semantic Segmentation},
+  author={Mahmood Haithami and Amr Ahmed and Iman Yi Liao and Hamid A. Jalab},
+  booktitle={Proceedings of the 3rd International Workshop and Challenge on Computer Vision in Endoscopy (EndoCV 2021) co-located with with the 17th IEEE International Symposium on Biomedical Imaging (ISBI 2021)},
+  year={2021},
+  url={http://ceur-ws.org/Vol-2886/paper6.pdf}
+}
+
 @article{shortcut_learning,
     title = {Shortcut learning in deep neural networks},
     volume = {2},
@@ -1399,6 +1407,25 @@ doi = {10.48550/ARXIV.1911.10500},
 	doi = {10.1007/978-3-030-68793-9_18}
 }
 
+@misc{endocv2021_review,
+  doi = {10.48550/ARXIV.2202.12031},
+  
+  url = {https://arxiv.org/abs/2202.12031},
+  
+  author = {Ali, Sharib and Ghatwary, Noha and Jha, Debesh and Isik-Polat, Ece and Polat, Gorkem and Yang, Chen and Li, Wuyang and Galdran, Adrian and Ballester, Miguel-Ángel González and Thambawita, Vajira and Hicks, Steven and Poudel, Sahadev and Lee, Sang-Woong and Jin, Ziyi and Gan, Tianyuan and Yu, ChengHui and Yan, JiangPeng and Yeo, Doyeob and Lee, Hyunseok and Tomar, Nikhil Kumar and Haithmi, Mahmood and Ahmed, Amr and Riegler, Michael A. and Daul, Christian and Halvorsen, Pål and Rittscher, Jens and Salem, Osama E. and Lamarque, Dominique and Cannizzaro, Renato and Realdon, Stefano and de Lange, Thomas and East, James E.},
+  
+  keywords = {Computer Vision and Pattern Recognition (cs.CV), Artificial Intelligence (cs.AI), Machine Learning (cs.LG), FOS: Computer and information sciences, FOS: Computer and information sciences},
+  
+  title = {Assessing generalisability of deep learning-based polyp detection and segmentation methods through a computer vision challenge},
+  
+  publisher = {arXiv},
+  
+  year = {2022},
+  
+  copyright = {Creative Commons Attribution Non Commercial Share Alike 4.0 International}
+}
+
+
 @proceedings{endocv2020,
 	title={EndoCV2020: 2nd International Workshop and Challenge on Computer Vision in Endoscopy},
 	editor={Ali, Sharib and Daul, Christian and Rittscher, Jens and Stoyanov, Danail and Grisan, Enrico},
@@ -1638,4 +1665,16 @@ year = {2017}
   year = {2019},
   
   copyright = {arXiv.org perpetual, non-exclusive license}
+}
+
+@inproceedings{endocv2021_ensemble_3,
+	title = {Improving generalizibilty in polyp segmentation using ensemble convolutional neural network},
+	journal = {3rd International Workshop and Challenge on Computer Vision in Endoscopy (EndoCV2021)},
+	volume = {2886},
+	year = {2021},
+	publisher = {CEUR Workshop Proceedings},
+	abstract = {Medical image segmentation is a crucial task in medical image analysis. Despite near expert-label performance with the application of the deep learning method in medical image segmentation, the generalization of such models in the clinical environment remains a significant challenge. Transfer learning from a large medical dataset from the same domain is a common technique to address generalizability. However, it is difficult to find a similar large medical dataset. To address generalizability in polyp segmentation, we have used an ensemble of four MultiResUNet architectures, each trained on the combination of the different centered datasets provided by the challenge organizers. Our method achieved a decent performance of 0.6172 {\textpm} 0.0778 for the multi-centered dataset. Our study shows that significant work needs to be done to develop a computer-aided diagnosis system to detect and localize polyp of the multi-center datasets, which is essential for improving the quality of the colonoscopy.},
+	keywords = {colonoscopy, Convolutional neural network, health informatics, Polyp segmentation},
+	author = {Nikhil KumarTomar and Nabil Ibtehaz and Debesh Jha and P{\r a}l Halvorsen and Sharib Ali},
+	url={http://ceur-ws.org/Vol-2886/paper5.pdf}
 }

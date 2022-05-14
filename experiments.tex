@@ -2,16 +2,19 @@
 This chapter presents the experiments conducted to evaluate the methods presented in~\Cref{methods}, as well as their set up and the experimental methodology used. The results of each experiment are then presented and discussed in brief.~\Cref{exp_meth} will present the experimental setup used in this thesis, including the choices of metrics, datasets, models used throughout all of the experiments. Baseline generalizability metrics are then collected in~\Cref{models}. The impact of data augmentation on generalization is then tested in~\Cref{augmentations}, which in turn is used as a basis for the experiments performed in~\Cref{consistency_training}, wherein the best augmentation method was selected for use in Consistency Training. Finally, the impact of ensembles is tested in~\Cref{ensembles}. All experiments where conducted using Nvidia Tesla-V100 GPUs on the eX3 computing infrastructure offered by Simula Research Laboratory. The experiments were implemented in Python 3.8 using PyTorch. The source code as well as all of the raw data is available on the GitHub repository given in~\Cref{code_data}.
 
 \section{Experimental Setup}\label{exp_meth}
-The experiments conducted in this chapter were partially exploratory and partially quantitative in nature. In addition to exploring the impact of the methods as outlined in~\Cref{methods}, the effects of more well-known methods were also compared. In particular, the effect of the choice of model architecture, the use of data augmentation, and ensemble models were quantified. This was then in turn compared quantitatively to the impact due to the methods presented in this thesis. 
+The experiments conducted in this chapter were partially exploratory and partially quantitative in nature. The relative impacts of the methods and baselines on generalization was determined quantitatively where possible through fitting statistical tests depending on the required null-hypothesis and nature of the distribution within the respective groups. Where further analysis was necessary and feasible, these results were then explored in an attempt to relate them to the theory as presented in \Cref{gen_theory}. 
 
-Statistical significance was established using two-tailed independent-sample t-tests when comparing samples of identical models and datasets, as the resulting distribution can be considered approximately normal. In cases where this was not the case, i.e when comparing performance across all models, in which case the distribution is typically multimodal, a Mann-Whitney U-test was used. Results with p-values under 0.01 were considered significant. 
+In addition to exploring the impact of the methods as outlined in~\Cref{methods}, the effects of more well-known methods were also compared. In particular, the effect of the choice of model architecture, the use of data augmentation, and ensemble models was quantified and related to one another. This was then in turn compared to the impact due to the methods presented in \Cref{methods}. 
+
+An alpha-value of 0.01 was used to ascertain statistical significance throughout this thesis. The p-values for all comparisons performed in this thesis can be found in~\Cref{p-values}. The statistical tests used in this thesis are as follows:
+\begin{itemize}
+    \item Two-sided independent-sample t-tests were used to perform comparisons between approximately normally distributed groups.
+    \item The Mann-Whitney U-test was used to perform comparisons between groups that were not normally distributed, for instance when considering the results across multiple models and/or datasets simultaneously.
+    \item The Spearman's rank correlation test was used to identify correlations, and was selected due to the lack of assumptions of linearity.
+\end{itemize}
 
 The following sections will further detail the experimental setup, including the choices of metrics, datasets, and the choice of models with which the impact of the presented methods were established. 
-
-\subsection{Metrics and Evaluation} \label{metrics}
-    This subsection will present the metrics and datasets used in order to evaluate the generalizability of the predictors presented in this thesis.  
-
-    \subsubsection{Datasets} \label{datasets}
+   \subsubsection{Datasets} \label{datasets}
     Naturally, the best way to evaluate the generalizability of a given predictor is to test it directly on \gls{ood} data. Though this can to some extent be achieved by carefully designing stress-tests ~\cite{damour2020underspecification}, a more straight-forward approach is to simply leverage existing \gls{ood} datasets. To this end, a number of polyp-segmentation datasets were selected. The names, sizes, resolutions and availabilities of these datasets is shown in~\Cref{tab:datasets}. Samples images and masks from the datasets can be seen in~\Cref{fig:dataset_examples}
     
     \begin{table}[htb]
@@ -43,6 +46,9 @@ The following sections will further detail the experimental setup, including the
     
     All images were resized to 512x512 as preprocessing during all training runs, as some of the models required base-2 dimensionality.
     
+\subsection{Metrics} \label{metrics}
+    This subsection will present the metrics used in order to evaluate the performance of the predictors presented in this thesis. As the primary focus is to evaluate generalizability, only two metrics are used, namely mean \gls{iou} and the \glsfirst{cs} of the \gls{iou}.
+
     \subsubsection{Mean Intersection-over-Union}
     
     The most natural way to quantify generalizability is to simply evaluate the predictors on in-distribution and out-of-distribution data and then consider the differences. There are, naturally, several performance measures that can be used to this end in the context of segmentation, the most natural of which being \gls{iou} or the Dice coefficient, which as discussed in \Cref{background} are equivalent. In this thesis, \gls{iou} was used. To reiterate, IoU is defined as follows:
@@ -59,8 +65,8 @@ The following sections will further detail the experimental setup, including the
     
     To analyze this, the literature tends to consider the performance variability of a set of multiple identically trained predictors ~\cite{damour2020underspecification}.  
     
-    One simple approach to quantify this is to take the standard deviation of the mean \gls{iou} scores for the given datasets and predictors. This, however, implicitly rewards predictors that perform poorly. To mitigate this, the \gls{cs} can instead be used. \gls{cs} is similar to the standard deviation, but normalized by the mean:
-    \begin{equation}
+    One simple approach to quantify this is to take the standard deviation of the mean \gls{iou} scores for the given datasets and predictors. This, however, implicitly rewards predictors that perform poorly. To mitigate this, the \gls{cs} can instead be used. \gls{cs} is similar to the standard deviation, but normalized by the mean. This is shown in \Cref{cstd}, where \(n=|\{x_0, x_1, \ldots, x_n\}|\) is the number of samples (in this thesis: mean \gls{iou} for a given predictor), and \(\mu\) is the sample mean (in this thesis: the mean of the mean \glspl{iou} across predictor samples)
+    \begin{equation}\label{cstd}
         C.StD = \frac{1}{n \mu} \sqrt{ \sum_i^n (\mu - x_i)^2  }
     \end{equation}
     
@@ -77,7 +83,7 @@ The models were implemented in pytorch using the segmentation-models-pytorch (SM
                  Model & Architecture & Parameters  \\
             \midrule
                  UNet ~\cite{unet} & Encoder-Decoder & 48872738\\ 
-                 TriUnet ~\cite{divergentnets}
+                 TriUnet ~\cite{divergentnets} &
                  Stacked Encoder-Decoder & 122178709\\
                  FPN ~\cite{fpn} & Pyramidal & 47591762\\ 
                  DeepLabV3+ ~\cite{deeplab} & Hybrid & 22437457\\ 
@@ -115,7 +121,7 @@ To establish the effect of model architectures alone, ten predictors were traine
             \label{table:hyperparameters}
 \end{table}
 
-The \gls{ood} \glspl{iou} are shown in~\Cref{tab:baseline_iou}. The numerical precision has been truncated to the 99\% confidence interval. Though the differences between many pairs of models are statistically significant for several datasets, the magnitude thereof is marginal to the point of being inconsequential for practical purposes, with the exception of TriUnet which exhibited considerably worse generalization. All p-values are shown in~\Cref{models_pvalues} in Appendix A.
+The mean \glspl{iou} for each dataset are shown in~\Cref{tab:baseline_iou}. Though the differences between many pairs of models are statistically significant for several datasets, the magnitude thereof is marginal to the point of being inconsequential for practical purposes, with the exception of TriUnet which exhibited considerably worse generalization. All p-values are shown in~\Cref{models_pvalues}.
 
 \begin{table}[htb]
     \centering
@@ -135,25 +141,40 @@ The \gls{ood} \glspl{iou} are shown in~\Cref{tab:baseline_iou}. The numerical pr
     \label{tab:baseline_iou}
 \end{table}
 
-\Cref{fig:baseline_ious} shows the models' average change in mean \gls{iou} across the three \gls{ood} datasets with respect to the mean \gls{iou} of the \gls{ind} dataset. All models exhibited considerable performance degradation, and as before the differences across architectures are insignificant, once again with the exception of the TriUnet. 
+\Cref{fig:baseline_ious} shows the models' average change in mean \gls{iou} across the three \gls{ood} datasets with respect to the mean \gls{iou} of the \gls{ind} dataset. All models exhibited considerable performance degradation, as expected per the discussion in \Cref{case_studies}. Once again, the  differences across architectures are fairly marginal, once again with the exception of the TriUnet. 
     \begin{figure}[htb]
         \centering
-        \includegraphics[width=\linewidth]{illustrations/delta_iou_baseline.png}
+        \includegraphics[width=\linewidth]{illustrations/delta_iou_baseline.eps}
         \caption{Change in \gls{ood} \gls{iou} as a percentage of the \gls{ind} \gls{iou} across models and datasets.}
         \label{fig:baseline_ious}
     \end{figure}
 
-    What differences there are across the models, however, can be understood according to their relationship with underspecification.~\Cref{fig:baseline_cstd} shows the \gls{cs} values for each model and dataset as computed from the evaluation of the ten predictors. Of particular interest is the relationship between the Unet and the TriUNet, as well as DeepLabV3+ and the dual-decoder counterpart. The differences between these two pairs of models will be discussed in further depth below.
+    What differences there are across the models, however, can to some extent be understood according to the extent to which the models are underspecified.~\Cref{fig:baseline_cstd} shows the \gls{cs} values for each model and dataset as computed from the evaluation of the ten predictors. 
     
     \begin{figure}[htb]
         \centering
-        \includegraphics[width=\linewidth]{illustrations/cstd_baseline.png}
+        \includegraphics[width=\linewidth]{illustrations/cstd_baseline.eps}
         \caption{Coefficient of Standard Deviation across models and datasets.}
         \label{fig:baseline_cstd}
     \end{figure}
     
+    Evidently, the margins seperating the models in terms of  mean \gls{iou} are similar to the margins sepearating the models in terms of the \gls{cs}. 
+    
+    Indeed, as is shown in \c there is a strong correlation between the two metrics, suggesting that underspecification plays a considerably more significant role than the model architectures themselves. I.e, the more underspecified the model is, the greater the falls in \gls{iou} on \gls{ood} datasets. 
+    
+    \begin{figure}[htb]
+        \centering
+        \includegraphics{illustrations/underspecification_baseline.eps}
+        \caption[Correlation between Generalizability and Underspecification]{Scatter-plot showing the relationship between model underspecification as quantified by \gls{cs} and generalization failure as quantified change in mean \gls{iou} as a percentage of the \gls{ind} \gls{iou}.}
+        \label{fig:my_label}
+    \end{figure}
+
+    Of particular interest is the relationship between the Unet and the TriUNet, as well as DeepLabV3+ and the dual-decoder counterpart. The differences between these two pairs of models will be discussed in further depth below.
+    
     \subsubsection{Unet vs TriUnet}
-    Consider the TriUnet and how its variability is higher and \gls{ood} performance lower compared to the regular Unet. As the TriUnet consists of three UNets, conventional analyses would assert that the TriUnet should exhibit equivalent performance or greater. However, the results instead demonstrate that the TriUnet on average performs worse than the regular Unet as well as exhibiting significantly higher performance variability. This corroborates the notion that underspecification plays a significant role in generalization failure; the TriUnet is highly underspecified in comparison to the Unet, as the difference in performance variability between shows in~\Cref{fig:baseline_cstd}.
+    Consider the differences between the TriUnet and the Unet as shown in \Cref{fig:baseline_cstd} and \Cref{fig:baseline_ious}. As the TriUnet consists of three UNets, many analyses would assert that the TriUnet should exhibit equivalent performance or greater, as it affords increased support over the regular Unet. However, the results instead demonstrate that the TriUnet on average performs worse than the regular Unet. This can be understood by considering the degree to which the respective models are subject to underspecification. In this thesis, this is quantified by the performance varaibility (\gls{cs}). 
+    
+    This corroborates the notion that underspecification plays a significant role in generalization failure; the TriUnet is highly underspecified in comparison to the Unet, as the difference in performance variability between shows in~\Cref{fig:baseline_cstd}.
     
     \subsection{DeepLabV3+ vs DD-DeepLabV3+} \label{dd-deeplab}
     DeepLabV3+ and DD-DeepLabV3+ both exhibited more or less comparable performance when considering their \gls{ood} IoUs, as shown in~\Cref{tab:baseline_iou}. Interestingly, though, the dual-decoder model performed better on the \gls{ind} dataset - Kvasir-Seg - by a statistically significant margin (p<0.01). There are also some differences with regards performance variability, albeit minor. As shown in~\Cref{fig:baseline_cstd}, the DD-DeepLabV3+ exhibits lower \gls{cs} scores than its single-decoder counterpart. Since the models are as mentioned functionally identical except for the presence of the reconstruction decoder during the training of DD-DeepLabV3+, this can only be attributed to the model learning a more limited latent representation and thus being less underspecified. 
@@ -229,7 +250,7 @@ The relative improvements due to the two augmentation strategies as a percentage
 \begin{figure}[htb]
     \centering
     \includegraphics[width=\linewidth]{illustrations/augmentation_plot.eps}
-    \caption[Augmentation Improvements]{Box plot showing the improvements in \gls{iou} per dataset as a percentage of the mean \gls{iou} for the unaugmented predictors. }
+    \caption[Augmentation Improvements]{Strip Plot of the ensembles' improvements in \gls{iou} per dataset as a percentage of the mean \gls{iou} of the corresponding model.}
     \label{fig:augmentations}
 \end{figure}
 
@@ -283,13 +304,13 @@ For each model architecture, ten predictors were trained using Consistency Train
         Unet& 0.598 & 0.660 & \textbf{0.676}*\\
 \bottomrule
     \end{tabularx}
-    \caption[Mean IoUs for training methods]{Mean IoUs for training methods, precision truncated to 99\% confidence. Consistency training entries with greater performance than conventional augmentation by for the given model and dataset are highlighted in bold. If statistically significant after a two-tailed independent sample t-test, they are also marked with a "*"}
+    \caption[Mean IoUs for training methods]{Mean IoUs for training methods, precision truncated to 99\% confidence. Consistency Training entries with greater performance than conventional augmentation by for the given model and dataset are highlighted in bold. If statistically significant after a two-tailed independent sample t-test, they are also marked with a "*"}
     \label{tab:consistency}
 \end{table}
 
-The results show that Consistency Training increases generalization considerably, outperforming data augmentation by a statistically significant margin when averaging across models on all \gls{ood} datasets. This is shown in~\Cref{fig:consistency_training_improvement}. P-values can be found in~\Cref{tab:ttest_avgs_consistency} in Appendix A. 
+The results show that Consistency Training increases generalization considerably, outperforming data augmentation by a statistically significant margin when averaging across models on all \gls{ood} datasets. This is shown in~\Cref{fig:consistency_training_improvement}. P-values can be found in~\Cref{tab:ttest_avgs_consistency}. 
 
-When analyzing the improvements for the individual models, statistical significance was achieved for all models except the TriUnet on the Etis-LaribDB dataset, for the FPN and Unet on the CVC-ClinicDB dataset, and for the Unet on the EndoCV2020 dataset. The p-values for these comparisons are found in~\Cref{tab:ttest_per_dataset_consistency} in Appendix A. When averaging across models, 
+When analyzing the improvements for the individual models, statistical significance was achieved for all models except the TriUnet on the Etis-LaribDB dataset, for the FPN and Unet on the CVC-ClinicDB dataset, and for the Unet on the EndoCV2020 dataset. The p-values for these comparisons are found in~\Cref{tab:ttest_per_dataset_consistency}. When averaging across models, 
 \begin{figure}[htb]
     \centering
     \includegraphics[width=\linewidth]{illustrations/consistency_training_percent.eps}
@@ -297,7 +318,7 @@ When analyzing the improvements for the individual models, statistical significa
     \label{fig:consistency_training_improvement}
 \end{figure}
 
-As discussed in~\Cref{cons_vs_aug}, this is to be expected. Though data augmentation and Consistency Training both increase the support of the models, only Consistency Training explicitly imposes inductive biases, and hence provides a better basis towards increasing generalization. This is also evidenced by considering the performance variability across the configurations,  shown in~\Cref{fig:consistency_cstd}.
+As discussed in~\Cref{cons_vs_aug}, this is to be expected. Consistency training can be interpreted as imposing a more credible set of inductive biases by explicitly optimizing for consistency across augmentations. This is also evidenced by considering the performance variability across the configurations,  shown in~\Cref{fig:consistency_cstd}. Though the relationship between the \glspl{cs} values cannot be confirmed to statistical significance due to the low sample sizes involved in this thesis, a matter that will be discussed further in \Cref{discussion}, 
 
 \begin{figure}[htb]
     \centering
@@ -308,10 +329,12 @@ As discussed in~\Cref{cons_vs_aug}, this is to be expected. Though data augmenta
 
 \section{Ensembles}\label{ensembles}
 
-Finally, the impact of combining multiple predictors into an ensemble was investigated. Two types of ensembles were investigated: ensembles consisting of five instances of a single type of model and ensembles consisting of all five models. The generalizability of these ensembles were then compared to one another and with the average performance of their constituent predictors. For completeness, ensembles consisting of predictors trained with and without regular data augmentation were also tested.
+Finally, the impact of combining multiple predictors into an ensemble was investigated. Two types of ensembles were investigated: ensembles consisting of five instances of a single type of model and ensembles consisting of all five models. The generalizability of these ensembles were then compared to one another and with the average performance of their constituent predictors. Such analysis was performed across all of the the training-methods tested in \Cref{consistency_training}, i.e. no augmentation, conventional data augmentation, and Consistency Training. Finally, the relationship between the improvement due to ensembles and underspecification was explored. 
 
 To ascertain the generalizability of the ensembles to statistical significance, ten ensembles of each kind were implemented. For the multi-model ensembles, each of the ten ensembles was built from unique predictors trained in~\Cref{consistency_training}.  For the single-model ensembles, five predictors were randomly selected from the ten that were trained in~\Cref{consistency_training}. As will be further discussed in~\Cref{discussion}, these ensembles too should have been built from unique predictors, however due to limits of computational resources this was not possible. 
 
+\subsection{Improvements over Single Models}\label{ensemble_improvement_section}
+First, the generalizability of ensemble models was compared to that of the single models. As previously noted, this was performed on pairs of ensembles and single models across all the three training methods compared in \Cref{consistency_training}. The \gls{iou}-scores for the ensemble models are shown in~\Cref{tab:ensembles}. Averaging across models, the ensembles exhibited increased mean \glspl{iou} on all of the \gls{ood} datasets when compared to the mean \gls{iou} of the constituent models as shown in~\Cref{tab:consistency} (p<0.01). See~\Cref{tab:ensemble_v_singular} for p-values. This corroborates the findings in other works that ensembles contribute to increased generalization~\cite{endoensemble, divergentnets}. 
 \begin{table}[htb]
     \centering
     \begin{tabularx}{\linewidth}{lXXXr}
@@ -329,11 +352,11 @@ MultiModel      & 0.747 & 0.693 &0.484 &0.867 \\
 \midrule
 \multicolumn{5}{c}{\textbf{Conventional Augmentation}}\\
 \midrule
-DD-DeepLabV3+   & 0.749 & 0.684 & 0.495 & 0.865 \\
-DeepLab         & 0.749 & 0.691 & 0.486 & 0.863 \\
-FPN             & 0.732 & 0.686 & 0.454 & \textbf{0.871} \\
-TriUnet         & 0.720 & 0.692 & 0.451 & 0.861 \\
-Unet            & 0.734 & 0.675 & 0.437 & 0.869 \\
+DD-DeepLabV3+   & 0.746 & 0.685 & 0.480 & 0.861 \\
+DeepLab         & 0.750 & 0.692 & 0.492 & 0.862 \\
+FPN             & 0.732 & 0.684 & 0.457 & \textbf{0.869} \\
+TriUnet         & 0.715 & 0.692 & 0.440 & 0.860 \\
+Unet            & 0.735 & 0.677 & 0.457 & 0.867 \\
 MultiModel      & 0.740 & 0.687 & 0.462 & 0.867 \\
 \midrule
 \multicolumn{5}{c}{\textbf{No Augmentation}}\\
@@ -352,13 +375,17 @@ MultiModel     & 0.694 & 0.612 & 0.414 & 0.846 \\
 
 \begin{figure}[htb]
     \centering
-    \includegraphics[width=\linewidth]{illustrations/improvements_due_to_ensembles.png}
-    \caption[Improvements due to Ensembles]{Boxplot showing the improvement due to ensembles as a percentage of the mean \gls{iou} across their constituent models, when trained with Consistency Training}
+    \includegraphics[width=\linewidth]{illustrations/improvements_due_to_ensembles.eps}
+    \caption[Improvements due to Ensembles]{Boxplot showing the improvement due to ensembles as a percentage of the mean \gls{iou} across their constituent models across all three training methods}
     \label{fig:ensemble_improvements}
 \end{figure}
-The \gls{iou}-scores for the ensemble models are shown in~\Cref{tab:ensembles}. Averaging across models, the ensembles exhibited increased mean \glspl{iou} on all of the \gls{ood} datasets when compared to the mean \gls{iou} of the constituent models (p<0.01). See \Cref{tab:ensemble_v_singular} in Appendix A for p-values. This corroborates the findings in other works that ensembles contribute to increased generalization~\cite{endoensemble, divergentnets}. 
 
-The relative improvements were comparable across all three training methods, with the average change in IoU as a percentage of the mean \gls{iou} of the constituent models being 2.026\%, 3.081\% and 2.351\% respectively for no augmentation, conventional augmentation, and consistency training . This is shown in \Cref{fig:ensemble_improvements_across_training_methods}. 
+ 
+\subsection{Effect of Ensemble Training Methods}\label{ensemble_training_methods}
+
+The difference in \gls{iou} between the three ensemble training methods was statistically significant on all datasets (p<0.01), except CVC-ClinicDB, wherein the difference between the ensembles trained with Consistency Training and the ensembles trained with conventional data augmentation had a p-value of 0.012. The p-values can be found in~\Cref{fig:ttest_training_methods_ensembles}. 
+
+The difference between the relative improvements across the three training methods were statistically insignificant (p>0.01), with the average change in IoU as a percentage of the mean \gls{iou} of the constituent models being 2.026\%, 3.081\% and 2.351\% respectively across all datasets for ensembles trained with no augmentation, conventional augmentation, and Consistency Training.  This is shown in \Cref{fig:ensemble_improvements_across_training_methods}. The p-values are shown in \Cref{fig:ensemble_improvement_tmethod}. 
 
 \begin{figure}
     \centering
@@ -367,17 +394,18 @@ The relative improvements were comparable across all three training methods, wit
     \label{fig:ensemble_improvements_across_training_methods}
 \end{figure}
 
-The difference between the three ensemble training methods was statistically significant on all datasets (p<0.01), except CVC-ClinicDB, wherein the difference between the ensembles trained with Consistency Training and the ensembles trained with conventional data augmentation had a p-value of 0.012. The p-values can be found in~\Cref{fig:ttest_training_methods_ensembles} in Appendix A. 
+
 
 To further analyze the impact of ensembles with respect to single models, one can consider the relative performance improvements between them. To this end, the performance of the ensembles trained with Consistency Training was compared to the mean performance of its constituent predictors across all tested model architectures. The relative improvements as a percentage of the constituent predictor performance are shown in~\Cref{fig:ensemble_improvements}. The results show that ensembles increase generalization. However, this is not always the case; perhaps counter-intuitively, the use of ensembles may in certain cases reduce generalization. This occurred on some of the samples of the DD-DeepLabV3+ and FPN-ensembles on Etis-LaribDB, for instance. This may happen when there are high degrees of disagreement among the constituent predictors, in which case there may not be sufficient consensus to fully segment the polyp. Many implementations of ensembles, therein the implementation used in this thesis, require at least a 50\% consensus in order for a given pixel to be classified positively, and thus if this is not achieved, the ensemble may perform worse than any one of the constituent predictors. 
 
+\subsection{Ensembles and Underspecification} \label{ensemble_underspecification}
 The tendency of ensembles to increase generalization is as mentioned in~\Cref{background} often attributed to the fact that the use of ensembles to some extent mitigate underspecification. Specifically, they constitute a form of Bayesian marginalization, and should thus in theory be able to leverage the variability of its constituent predictors in order to increase generalization. This assumes that predictions with high consensus are the most generalizable, though as shown in \Cref{fig:bayesian_generalization} this may not be the case. 
 
 To further investigate the veracity of this line of reasoning, one can consider the relationship between the improvements to generalization due to the use of ensembles versus the degree to which the pipelines that generate the constituent predictors are underspecified. This is shown in~\Cref{fig:ensemble_var}. 
 \begin{figure}[!hbt]
     \centering
-    \includegraphics[width=0.9\linewidth]{illustrations/ensembles_underspecification.png}
-    \caption[Relationship between ensemble improvements and underspecification]{Plot showing the relationship between predictor-wise performance variability and improvements in generalization due ensembles trained with consistency training. The error-bars show the 99\% confidence intervals for the improvement. The more under specified the pipeline is as quantified by performance variability, the greater improvements are made through the use of ensembles. }
+    \includegraphics[width=0.9\linewidth]{illustrations/ensembles_underspecification.eps}
+    \caption[Relationship between ensemble improvements and underspecification]{Plot showing the relationship between predictor-wise performance variability and improvements in generalization due ensembles trained with Consistency Training. The error-bars show the 99\% confidence intervals for the improvement. The more under specified the pipeline is as quantified by performance variability, the greater improvements are made through the use of ensembles. }
     \label{fig:ensemble_var}
 \end{figure}
 
@@ -392,7 +420,8 @@ In~\Cref{fig:ensemble_var}, it should also be noted that the \gls{cs} values are
     \label{fig:ensemble_var_stat}
 \end{figure}
 
-The \gls{cs} values are in this case based on five predictors - half as many as in~\Cref{fig:ensemble_improvements}, thus there may be a larger degree of measurement error along the x-axis. Nevertheless, there overall appears to be a generally positive relationship between the ensemble constituent's \gls{cs} of \plgls{iou} and the relative improvements in mean \gls{iou} due to ensembles. When the ensembles are trained without augmentation, this relationship is statistically significant for all datasets. When trained with conventional augmenation, . When trained with consistency training, it is statistically significant for Etis-LaribDB and CVC-ClinicDB. The weak correlation in the remaining datasets may be attributed to the fact that the models generally perform with low degrees of variability on them, as shown in \Cref{fig:consistency_cstd}. This low variability suggests that the predictors all return fairly similar segmentations, which also explains the comparatively low impact of the ensembles on these datasets.  
+The \gls{cs} values are in this case based on five predictors - half as many as in~\Cref{fig:ensemble_improvements}, thus there may be a larger degree of measurement error along the x-axis. Nevertheless, there overall appears to be a generally positive relationship between the ensemble constituent's \gls{cs} of \gls{iou} and the relative improvements in mean \gls{iou} due to ensembles. When the ensembles are trained either with or without conventional augmentation, this relationship is statistically significant for all datasets when comparing across all models. When trained with Consistency Training, it is statistically significant for Etis-LaribDB and CVC-ClinicDB. The weak correlation in the remaining datasets may be attributed to the fact that the models generally perform with low degrees of variability on them, as shown in \Cref{fig:consistency_cstd}. This low variability suggests that the predictors all return fairly similar segmentations, which also explains the comparatively low impact of the ensembles on these datasets.  
+
 
 
 \section{Summary}
@@ -401,8 +430,8 @@ This chapter detailed the experiments performed to evaluate the methods presente
     \item Model architecture had limited bearing on increasing generalization, but large models are likely to harm it.
     \item Multitask learning as implemented using the Dual-decoder DeepLabV3+ had negligible impact, which may be attributed to the encoder learning dataset-agnostic features.
     \item Data augmentation increased generalization considerably, but the use of the generative inpainter had a negative effect.
-    \item Consistency training outperformed conventional data augmentation, and increased generalization by significant margins on more difficult datasets.
-    \item Ensembles models increased generalization. The relationship between this increase and underspecification was investigated, and though there appeared to be a positive correlation, this was not conclusively proven.
+    \item Consistency Training outperformed conventional data augmentation and increased generalization by statistically significant margins.
+    \item Ensembles models increased generalization. The relationship between this increase and underspecification was investigated, and shown to be positively correlated to statistical significance. 
 \end{itemize}
 
-These findings will be discussed in further detail in~\Cref{discussion} along with their impact, and their limits. 
+These findings will be discussed in further detail in~\Cref{discussion} along with their impact and limitations. 
